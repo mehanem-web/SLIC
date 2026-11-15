@@ -1,0 +1,8 @@
+# Never commit the original workbook or anything filled in: they hold names and results.
+*.xlsx
+*.xlsm
+*.pdf
+*.jpg
+*.jpeg
+__pycache__/
+.DS_Store

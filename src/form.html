@@ -1,0 +1,1581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Site Lead Installation Check</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: sticky scoreboard on top, one long scroll of big tap rows, slim category rail on the right (a strip on top in portrait). */
+:root {
+  --bg: #edf0f3;
+  --surface: #ffffff;
+  --sunk: #f4f6f8;
+  --ink: #15202b;
+  --muted: #566473;
+  --line: #d2d9e0;
+  --accent: #1b5fc1;
+  --accent-ink: #ffffff;
+  --pass: #17764a;
+  --pass-bg: #e2f3ea;
+  --fail: #bd3324;
+  --fail-bg: #fbe7e3;
+  --na: #5d6875;
+  --na-bg: #e6eaee;
+  --warn: #8a5a00;
+  --warn-bg: #fdf0cf;
+  --font-display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --font-body: "Barlow", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f151b;
+    --surface: #19222c;
+    --sunk: #141c24;
+    --ink: #e7ecf1;
+    --muted: #9ba8b6;
+    --line: #2d3a47;
+    --accent: #74acff;
+    --accent-ink: #0b1622;
+    --pass: #55c891;
+    --pass-bg: #163a2a;
+    --fail: #ff8272;
+    --fail-bg: #48201b;
+    --na: #a3afbc;
+    --na-bg: #2a3541;
+    --warn: #f3c768;
+    --warn-bg: #3d3113;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f151b;
+  --surface: #19222c;
+  --sunk: #141c24;
+  --ink: #e7ecf1;
+  --muted: #9ba8b6;
+  --line: #2d3a47;
+  --accent: #74acff;
+  --accent-ink: #0b1622;
+  --pass: #55c891;
+  --pass-bg: #163a2a;
+  --fail: #ff8272;
+  --fail-bg: #48201b;
+  --na: #a3afbc;
+  --na-bg: #2a3541;
+  --warn: #f3c768;
+  --warn-bg: #3d3113;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.4;
+}
+button, input, textarea, select { font: inherit; color: inherit; }
+button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; letter-spacing: 0.01em; }
+
+/* ---------- top bar ---------- */
+.topbar {
+  position: sticky; top: 0; z-index: 20;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+.topbar-in {
+  display: flex; align-items: center; flex-wrap: wrap;
+  gap: 8px 16px;
+  padding: 10px 16px;
+  max-width: 1180px; margin: 0 auto;
+}
+.brand { flex: 1 1 180px; min-width: 0; }
+.brand h1 { font-size: 26px; line-height: 1; text-transform: uppercase; }
+.brand p { margin: 2px 0 0; font-size: 14px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tally { display: flex; gap: 6px; align-items: stretch; font-variant-numeric: tabular-nums; }
+.tally div {
+  min-width: 58px; padding: 4px 8px; border-radius: 6px; text-align: center;
+  background: var(--sunk); border: 1px solid var(--line);
+}
+.tally b { display: block; font-family: var(--font-display); font-size: 22px; line-height: 1.05; }
+.tally span { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+.tally .t-pass b { color: var(--pass); }
+.tally .t-fail b { color: var(--fail); }
+.tally .t-score { background: var(--ink); border-color: var(--ink); }
+.tally .t-score b, .tally .t-score span { color: var(--surface); }
+.btn {
+  min-height: 48px; padding: 0 18px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--surface);
+  font-weight: 600;
+}
+.btn-primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn-quiet { background: transparent; }
+.btn-danger { color: var(--fail); }
+.btn:disabled { opacity: 0.55; cursor: default; }
+
+/* ---------- page grid ---------- */
+.page {
+  max-width: 1180px; margin: 0 auto; padding: 16px;
+  display: grid; grid-template-columns: minmax(0, 1fr) 196px; gap: 16px;
+  align-items: start;
+}
+.rail { grid-column: 2; grid-row: 1; position: sticky; top: 86px; max-height: calc(100vh - 100px); overflow-y: auto; }
+.page > .main { grid-column: 1; grid-row: 1; }
+.rail ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.rail a {
+  display: flex; align-items: center; gap: 10px;
+  min-height: 44px; padding: 6px 8px; border-radius: 8px;
+  color: var(--ink); text-decoration: none; font-size: 14px; line-height: 1.2;
+  border: 1px solid transparent;
+}
+.rail a.here { background: var(--surface); border-color: var(--line); }
+.rail .nm { flex: 1 1 auto; min-width: 0; }
+.rail .ct { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dot {
+  flex: 0 0 14px; width: 14px; height: 14px; border-radius: 50%;
+  border: 2px solid var(--na); background: transparent;
+}
+.dot.some { background: linear-gradient(90deg, var(--na) 50%, transparent 50%); }
+.dot.done { background: var(--pass); border-color: var(--pass); }
+.dot.bad { background: var(--fail); border-color: var(--fail); }
+
+@media (max-width: 860px) {
+  .page { grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 12px 16px 16px; }
+  .page > .main { grid-column: auto; grid-row: auto; }
+  .rail { grid-column: auto; grid-row: auto; position: sticky; top: 0; z-index: 10; max-height: none; overflow: visible;
+    margin: 0 -16px; padding: 8px 16px; background: var(--bg); border-bottom: 1px solid var(--line); }
+  .rail ol { display: flex; overflow-x: auto; gap: 6px; padding-bottom: 2px; }
+  .rail li { flex: 0 0 auto; }
+  .rail a { background: var(--surface); border-color: var(--line); white-space: nowrap; }
+  .rail a.here { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .topbar { position: static; }
+}
+
+/* ---------- cards ---------- */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+.main { display: grid; gap: 16px; min-width: 0; }
+.sec-head {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px;
+  padding: 12px 16px; border-bottom: 1px solid var(--line);
+}
+.sec-head h2 { flex: 1 1 240px; font-size: 24px; line-height: 1.1; }
+.sec-head .ct { font-size: 15px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.sec-head .btn { min-height: 44px; padding: 0 14px; font-size: 15px; }
+
+/* details */
+.fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 16px; padding: 16px; }
+.field { display: grid; gap: 6px; min-width: 0; }
+.field label, .field .lbl { font-size: 14px; font-weight: 600; color: var(--muted); }
+.field input[type="text"], .field input[type="date"], .field input[type="number"] {
+  width: 100%; min-height: 48px; padding: 8px 12px;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--sunk);
+}
+.field.wide { grid-column: 1 / -1; }
+.pct { display: flex; align-items: center; gap: 8px; }
+.pct input { max-width: 130px; }
+@media (max-width: 560px) { .fields { grid-template-columns: minmax(0, 1fr); } }
+
+/* segmented control */
+.seg { display: flex; gap: 6px; }
+.seg button {
+  flex: 1 1 0; min-width: 76px; min-height: 52px; padding: 0 10px;
+  border: 2px solid var(--line); border-radius: 8px; background: var(--surface);
+  font-weight: 600; font-size: 17px;
+}
+.seg button[aria-pressed="true"] { color: var(--accent-ink); background: var(--accent); border-color: var(--accent); }
+.seg button.v-p[aria-pressed="true"] { background: var(--pass-bg); border-color: var(--pass); color: var(--pass); }
+.seg button.v-f[aria-pressed="true"] { background: var(--fail-bg); border-color: var(--fail); color: var(--fail); }
+.seg button.v-n[aria-pressed="true"] { background: var(--na-bg); border-color: var(--na); color: var(--na); }
+
+/* check rows */
+.item {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px 16px; align-items: center;
+  padding: 12px 16px; border-bottom: 1px solid var(--line);
+  border-left: 5px solid transparent;
+}
+.item:last-child { border-bottom: 0; border-bottom-left-radius: 9px; border-bottom-right-radius: 9px; }
+.item.is-p { border-left-color: var(--pass); }
+.item.is-f { border-left-color: var(--fail); background: var(--fail-bg); }
+.item.is-n { border-left-color: var(--na); }
+.item .what { min-width: 0; }
+.item .chk { font-weight: 600; font-size: 18px; line-height: 1.25; }
+.item .exp { margin-top: 2px; color: var(--muted); font-size: 16px; max-width: 65ch; }
+.item .ctl { display: flex; gap: 6px; align-items: center; }
+.item .seg button { flex: 0 0 auto; }
+.note-btn {
+  min-height: 52px; min-width: 52px; padding: 0 12px; border-radius: 8px;
+  border: 2px dashed var(--line); background: transparent; color: var(--muted); font-weight: 600; font-size: 15px;
+}
+.note-btn.has { border-style: solid; border-color: var(--accent); color: var(--accent); }
+.note-btn:disabled { opacity: 0.5; }
+.photo-in { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.note { grid-column: 1 / -1; display: grid; gap: 4px; }
+.note[hidden] { display: none; }
+.thumbs { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; }
+.thumbs[hidden] { display: none; }
+.thumb { width: 96px; height: 72px; padding: 0; border: 2px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--sunk); }
+.thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ph-img { display: block; max-width: 100%; max-height: 60vh; margin: 12px auto 0; border-radius: 8px; }
+.files { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 6px; }
+.files li { display: flex; gap: 10px; align-items: baseline; padding: 8px 12px; border-radius: 8px; background: var(--sunk); border: 1px solid var(--line); overflow-wrap: anywhere; }
+.files li b { flex: 0 0 auto; }
+.files li span { color: var(--muted); font-size: 15px; min-width: 0; }
+.files li.done { border-color: var(--pass); background: var(--pass-bg); }
+.files li.done span { color: var(--pass); }
+.note label { font-size: 14px; font-weight: 600; color: var(--muted); }
+.note textarea {
+  width: 100%; min-height: 76px; padding: 10px 12px; resize: vertical;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--surface);
+}
+@media (max-width: 700px) {
+  .item { grid-template-columns: minmax(0, 1fr); }
+  .item .ctl { width: 100%; }
+  .item .seg { flex: 1 1 auto; }
+  .item .seg button { flex: 1 1 0; min-width: 0; }
+  .item .ctl { flex-wrap: wrap; }
+}
+
+.about { padding: 14px 16px; color: var(--muted); font-size: 15px; }
+.about p { margin: 0 0 8px; max-width: 75ch; }
+.about p:last-child { margin-bottom: 0; }
+.foot { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; padding-bottom: 40px; }
+.savestate { font-size: 14px; color: var(--muted); }
+.savestate.bad { color: var(--warn); font-weight: 600; }
+
+/* office merge view */
+a { color: var(--accent); }
+.mode-merge .page, .mode-merge .tally, .mode-merge #finish-top, .mode-merge #subtitle, .mode-merge .toast { display: none; }
+.merge { max-width: 760px; margin: 0 auto; padding: 16px; display: grid; gap: 16px; }
+.merge[hidden] { display: none; }
+.mg-body { padding: 14px 16px 16px; display: grid; gap: 10px; }
+.mg-body p { margin: 0; max-width: 65ch; }
+.mg-hint { color: var(--muted); }
+.mg-info { padding: 10px 12px; border-radius: 8px; background: var(--sunk); border: 1px solid var(--line); overflow-wrap: anywhere; }
+.mg-info.ok { background: var(--pass-bg); border-color: var(--pass); color: var(--pass); font-weight: 500; }
+.mg-info.bad { background: var(--fail-bg); border-color: var(--fail); color: var(--fail); font-weight: 500; }
+.mg-info[hidden] { display: none; }
+.mg-step.over { outline: 3px dashed var(--accent); outline-offset: 2px; }
+.mg-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.mg-list li { padding: 10px 12px; border-radius: 8px; border: 1px solid var(--line); border-left: 5px solid var(--na); background: var(--sunk); overflow-wrap: anywhere; }
+.mg-list li.mg-ok { border-left-color: var(--pass); }
+.mg-list li.mg-bad { border-left-color: var(--fail); }
+.mg-list li.mg-skip { border-left-color: var(--warn); }
+.mg-top { display: flex; gap: 10px; align-items: baseline; justify-content: space-between; }
+.mg-msg { margin-top: 2px; }
+.mg-ok .mg-msg { color: var(--pass); } .mg-bad .mg-msg { color: var(--fail); } .mg-skip .mg-msg { color: var(--warn); }
+.mg-file { margin-top: 2px; font-size: 14px; color: var(--muted); }
+.mg-x { border: 0; background: transparent; color: var(--muted); text-decoration: underline; padding: 4px; font-size: 14px; }
+.mg-back { margin: 0; padding-bottom: 32px; }
+
+/* overlay + toast */
+.veil {
+  position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 50;
+  background: rgba(8, 14, 20, 0.6);
+  display: flex; align-items: center; justify-content: center; padding: 16px;
+}
+.veil[hidden] { display: none; }
+.sheet { width: 100%; max-width: 560px; max-height: 100%; overflow-y: auto; padding: 20px; }
+.sheet h2 { font-size: 28px; }
+.sheet p { margin: 8px 0 0; }
+.sum { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 14px; font-variant-numeric: tabular-nums; }
+.sum div { padding: 8px; border-radius: 8px; background: var(--sunk); border: 1px solid var(--line); text-align: center; }
+.sum b { display: block; font-family: var(--font-display); font-size: 30px; line-height: 1; }
+.sum span { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.callout { margin-top: 14px; padding: 10px 12px; border-radius: 8px; background: var(--warn-bg); color: var(--warn); font-weight: 500; }
+.callout.err { background: var(--fail-bg); color: var(--fail); }
+.callout.ok { background: var(--pass-bg); color: var(--pass); }
+.fname { margin-top: 12px; font-size: 15px; color: var(--muted); overflow-wrap: anywhere; }
+.acts { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.acts .btn { flex: 1 1 150px; }
+.toast {
+  position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 40;
+  display: flex; align-items: center; gap: 14px;
+  padding: 10px 12px 10px 16px; border-radius: 10px;
+  background: var(--ink); color: var(--surface); box-shadow: 0 6px 24px rgba(0,0,0,0.3);
+  max-width: calc(100% - 32px);
+}
+.toast[hidden], .toast button[hidden] { display: none; }
+.toast span { overflow-wrap: anywhere; }
+.toast button { min-height: 40px; padding: 0 14px; border-radius: 6px; border: 1px solid var(--surface); background: transparent; color: var(--surface); font-weight: 600; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brand">
+      <h1>Site Lead Installation Check</h1>
+      <p id="subtitle">New inspection</p>
+    </div>
+    <div class="tally" aria-live="polite">
+      <div class="t-pass"><b id="t-pass">0</b><span>Pass</span></div>
+      <div class="t-fail"><b id="t-fail">0</b><span>Fail</span></div>
+      <div><b id="t-na">0</b><span>N/A</span></div>
+      <div><b id="t-left">0</b><span>Left</span></div>
+      <div class="t-score"><b id="t-score">–</b><span>Score</span></div>
+    </div>
+    <button class="btn btn-primary" id="finish-top" type="button">Finish</button>
+  </div>
+</header>
+
+<div class="page">
+  <nav class="rail" aria-label="Categories"><ol id="rail"></ol></nav>
+
+  <main class="main" id="main">
+    <section class="card" id="details">
+      <div class="sec-head"><h2>Inspection details</h2></div>
+      <div class="fields">
+        <div class="field"><label for="f-lead">Site lead</label><input type="text" id="f-lead" autocomplete="off"></div>
+        <div class="field"><label for="f-inspector">Inspector</label><input type="text" id="f-inspector" autocomplete="off"></div>
+        <div class="field"><span class="lbl" id="l-ann">Announced in advance?</span>
+          <div class="seg" role="group" aria-labelledby="l-ann" data-meta="announced">
+            <button type="button" id="f-ann-yes" data-val="Yes">Yes</button>
+            <button type="button" id="f-ann-no" data-val="No">No</button>
+          </div></div>
+        <div class="field"><span class="lbl" id="l-mode">Virtual or in-person</span>
+          <div class="seg" role="group" aria-labelledby="l-mode" data-meta="mode">
+            <button type="button" id="f-mode-in" data-val="In-Person">In-person</button>
+            <button type="button" id="f-mode-vi" data-val="Virtual">Virtual</button>
+          </div></div>
+        <div class="field"><label for="f-date">Inspection start date</label><input type="date" id="f-date"></div>
+        <div class="field"><label for="f-job">SimPro job number (NA if none)</label><input type="text" id="f-job" autocomplete="off" inputmode="text"></div>
+        <div class="field wide"><label for="f-evm">Physical % complete at time of inspection (EVM)</label>
+          <div class="pct"><input type="number" id="f-evm" min="0" max="100" step="1" inputmode="decimal"><span>%</span></div></div>
+      </div>
+    </section>
+
+    <div id="sections" class="main"></div>
+
+    <section class="card about" id="about"></section>
+
+    <div class="foot">
+      <span class="savestate" id="savestate">Progress saves on this tablet as you go.</span>
+      <span style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-quiet btn-danger" id="reset" type="button">Start a new inspection</button>
+        <button class="btn btn-primary" id="finish-bottom" type="button">Finish</button>
+      </span>
+    </div>
+  </main>
+</div>
+
+<main class="merge" id="merge-view" hidden>
+  <section class="card">
+    <div class="sec-head"><h2>Add inspections to the master workbook</h2></div>
+    <div class="mg-body">
+      <p>Do this at a computer. Nothing is uploaded: the files are read and combined on this computer.</p>
+    </div>
+  </section>
+  <section class="card mg-step" id="mg-drop-master">
+    <div class="sec-head"><h2>1. The master workbook</h2>
+      <button class="btn" id="mg-master-btn" type="button">Choose the master workbook</button></div>
+    <div class="mg-body">
+      <p class="mg-hint">The Excel file with all inspections side by side. Choose it, or drop it here.</p>
+      <p class="mg-info" id="mg-master">No file chosen yet.</p>
+      <input class="photo-in" type="file" id="mg-master-in" accept=".xlsx" tabindex="-1" aria-hidden="true">
+    </div>
+  </section>
+  <section class="card mg-step" id="mg-drop-files">
+    <div class="sec-head"><h2>2. The new inspection files</h2>
+      <button class="btn" id="mg-files-btn" type="button">Choose inspection files</button></div>
+    <div class="mg-body">
+      <p class="mg-hint">The files saved from the tablets. Choose as many as you like, or drop them here.</p>
+      <p class="mg-info" id="mg-none">No files chosen yet.</p>
+      <ul class="mg-list" id="mg-list"></ul>
+      <input class="photo-in" type="file" id="mg-files-in" accept=".xlsx" multiple tabindex="-1" aria-hidden="true">
+    </div>
+  </section>
+  <section class="card mg-step">
+    <div class="sec-head"><h2>3. Save</h2></div>
+    <div class="mg-body">
+      <button class="btn btn-primary" id="mg-go" type="button" disabled>Add to the master and save</button>
+      <div class="callout" id="mg-status" hidden></div>
+    </div>
+  </section>
+  <p class="mg-back"><a href="#form">Back to the inspection form</a></p>
+</main>
+
+<div class="veil" id="finish-veil" hidden>
+  <div class="card sheet" role="dialog" aria-modal="true" aria-labelledby="fin-h">
+    <h2 id="fin-h">Finish inspection</h2>
+    <div class="sum">
+      <div><b id="s-pass">0</b><span>Pass</span></div>
+      <div><b id="s-fail">0</b><span>Fail</span></div>
+      <div><b id="s-na">0</b><span>N/A</span></div>
+      <div><b id="s-score">–</b><span>Score</span></div>
+    </div>
+    <div class="callout" id="fin-warn" hidden></div>
+    <ul class="files" id="fin-files">
+      <li id="fin-f-pdf"><b>Report</b><span id="fin-n-pdf"></span></li>
+      <li id="fin-f-xlsx"><b>Excel sheet</b><span id="fin-n-xlsx"></span></li>
+    </ul>
+    <div class="callout" id="fin-status" hidden></div>
+    <div class="acts">
+      <button class="btn" id="fin-back" type="button">Back to checklist</button>
+      <button class="btn" id="fin-first" type="button" hidden>Go to first unanswered</button>
+      <button class="btn btn-primary" id="fin-save" type="button">Save report and Excel sheet</button>
+    </div>
+  </div>
+</div>
+
+<div class="veil" id="photo-veil" hidden>
+  <div class="card sheet" role="dialog" aria-modal="true" aria-labelledby="ph-cap">
+    <p class="fname" id="ph-cap" style="margin-top:0"></p>
+    <img class="ph-img" id="ph-img" alt="">
+    <div class="acts">
+      <button class="btn btn-danger" id="ph-remove" type="button">Remove photo</button>
+      <button class="btn" id="ph-close" type="button">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="veil" id="reset-veil" hidden>
+  <div class="card sheet" role="dialog" aria-modal="true" aria-labelledby="rst-h">
+    <h2 id="rst-h">Start a new inspection?</h2>
+    <p>This clears every answer, note and photo in the form on this tablet. Save the report and Excel sheet first if you still need this one.</p>
+    <div class="acts">
+      <button class="btn" id="rst-no" type="button">Keep this inspection</button>
+      <button class="btn btn-danger" id="rst-yes" type="button">Clear and start new</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden role="status"><span id="toast-msg"></span><button type="button" id="toast-undo">Undo</button></div>
+
+<script id="checklist" type="application/json">/*CHECKLIST*/</script>
+<script id="tpl" type="application/json">/*PARTS*/</script>
+<script src="https://cdn.jsdelivr.net/npm/fflate@0.8.2/umd/index.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+(function () {
+  "use strict";
+  var DATA = JSON.parse(document.getElementById("checklist").textContent);
+  var CATS = DATA.categories;
+  var KEY = "orion-qa-inspection-draft-v1";
+  var KEY_WHO = "orion-qa-inspector";
+  var $ = function (id) { return document.getElementById(id); };
+
+  /* ---------- state ---------- */
+  function todayISO() {
+    var d = new Date();
+    var p = function (n) { return (n < 10 ? "0" : "") + n; };
+    return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
+  }
+  function blank() {
+    var who = "";
+    try { who = localStorage.getItem(KEY_WHO) || ""; } catch (e) {}
+    return { meta: { lead: "", inspector: who, announced: "", mode: "", date: todayISO(), job: "", evm: "" }, items: {} };
+  }
+  var state = blank();
+  var storageOk = true;
+  try {
+    var raw = localStorage.getItem(KEY);
+    if (raw) {
+      var got = JSON.parse(raw);
+      if (got && got.meta && got.items) { state = got; }
+    }
+  } catch (e) { storageOk = false; }
+
+  var saveTimer = null;
+  function persist() {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(state));
+      if (state.meta.inspector) { localStorage.setItem(KEY_WHO, state.meta.inspector); }
+      storageOk = true;
+    } catch (e) { storageOk = false; }
+    var el = $("savestate");
+    if (storageOk) { el.className = "savestate"; el.textContent = "Progress saves on this tablet as you go."; }
+    else { el.className = "savestate bad"; el.textContent = "This browser is not saving progress. Keep this page open until you have saved the report and Excel sheet."; }
+  }
+  function persistSoon() { clearTimeout(saveTimer); saveTimer = setTimeout(persist, 400); }
+  // Write any pending note the moment the page is hidden or closed, so nothing typed is lost.
+  document.addEventListener("visibilitychange", function () { if (document.visibilityState === "hidden") { clearTimeout(saveTimer); persist(); } });
+  window.addEventListener("pagehide", function () { clearTimeout(saveTimer); persist(); });
+
+  function it(row) {
+    if (!state.items[row]) { state.items[row] = { v: "", note: "" }; }
+    return state.items[row];
+  }
+
+  /* ---------- build ---------- */
+  function shortName(n) {
+    return n.replace(/\s*\(.*$/, "").replace(/, use .*$/, "").replace(/, Radar.*$/, "").replace(/, etc\.$/, "");
+  }
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) { e.className = cls; }
+    if (text != null) { e.textContent = text; }
+    return e;
+  }
+  var rowEls = {};
+  var secEls = [];
+  var railEls = [];
+
+  CATS.forEach(function (cat, ci) {
+    var li = el("li");
+    var a = el("a");
+    a.href = "#cat-" + ci;
+    a.id = "rail-" + ci;
+    a.appendChild(el("span", "dot"));
+    a.appendChild(el("span", "nm", shortName(cat.name)));
+    a.appendChild(el("span", "ct", "0/" + cat.items.length));
+    a.addEventListener("click", function (ev) {
+      ev.preventDefault();
+      scrollToEl($("cat-" + ci));
+    });
+    li.appendChild(a);
+    $("rail").appendChild(li);
+    railEls.push(a);
+
+    var sec = el("section", "card");
+    sec.id = "cat-" + ci;
+    var head = el("div", "sec-head");
+    head.appendChild(el("h2", null, cat.name));
+    head.appendChild(el("span", "ct", ""));
+    var allna = el("button", "btn", "Mark the rest N/A");
+    allna.type = "button";
+    allna.id = "allna-" + ci;
+    allna.addEventListener("click", function () { markRestNA(ci); });
+    head.appendChild(allna);
+    sec.appendChild(head);
+
+    cat.items.forEach(function (item) {
+      var row = el("div", "item");
+      row.id = "row-" + item.row;
+      var what = el("div", "what");
+      what.appendChild(el("div", "chk", item.check));
+      if (item.expected) { what.appendChild(el("div", "exp", item.expected)); }
+      row.appendChild(what);
+
+      var ctl = el("div", "ctl");
+      var seg = el("div", "seg");
+      seg.setAttribute("role", "group");
+      seg.setAttribute("aria-label", item.check);
+      [["p", "Pass"], ["f", "Fail"], ["n", "N/A"]].forEach(function (o) {
+        var b = el("button", "v-" + o[0], o[1]);
+        b.type = "button";
+        b.id = "b-" + item.row + "-" + o[0];
+        b.setAttribute("aria-pressed", "false");
+        b.addEventListener("click", function () { setValue(item.row, o[0]); });
+        seg.appendChild(b);
+      });
+      ctl.appendChild(seg);
+      var nb = el("button", "note-btn", "Note");
+      nb.type = "button";
+      nb.id = "nb-" + item.row;
+      nb.addEventListener("click", function () { toggleNote(item.row, true); });
+      ctl.appendChild(nb);
+      var pb = el("button", "note-btn", "Photo");
+      pb.type = "button";
+      pb.id = "pb-" + item.row;
+      var pin = el("input", "photo-in");
+      pin.type = "file";
+      pin.accept = "image/*";
+      pin.id = "pin-" + item.row;
+      pin.tabIndex = -1;
+      pin.setAttribute("aria-hidden", "true");
+      pb.addEventListener("click", function () { pin.value = ""; pin.click(); });
+      pin.addEventListener("change", function () {
+        if (pin.files && pin.files[0]) { takePhoto(item, pin.files[0], pb); }
+      });
+      ctl.appendChild(pb);
+      ctl.appendChild(pin);
+      row.appendChild(ctl);
+
+      var note = el("div", "note");
+      note.hidden = true;
+      var lab = el("label", null, "Notes");
+      lab.htmlFor = "note-" + item.row;
+      var ta = el("textarea");
+      ta.id = "note-" + item.row;
+      ta.rows = 2;
+      ta.addEventListener("input", function () {
+        it(item.row).note = ta.value;
+        nb.className = "note-btn" + (ta.value.trim() ? " has" : "");
+        persistSoon();
+      });
+      note.appendChild(lab);
+      note.appendChild(ta);
+      row.appendChild(note);
+
+      var thumbs = el("div", "thumbs");
+      thumbs.hidden = true;
+      row.appendChild(thumbs);
+      rowEls[item.row] = { row: row, note: note, ta: ta, nb: nb, pb: pb, thumbs: thumbs };
+      sec.appendChild(row);
+    });
+    $("sections").appendChild(sec);
+    secEls.push(sec);
+  });
+
+  DATA.footnotes.forEach(function (t) { $("about").appendChild(el("p", null, t)); });
+
+  /* ---------- behaviour ---------- */
+  function scrollToEl(node) {
+    var rail = document.querySelector(".rail");
+    var top = document.querySelector(".topbar");
+    var narrow = window.matchMedia("(max-width: 860px)").matches;
+    var off = (narrow ? rail.offsetHeight : top.offsetHeight) + 10;
+    var y = node.getBoundingClientRect().top + window.pageYOffset - off;
+    window.scrollTo(0, y);
+  }
+
+  function paintRow(row) {
+    var s = it(row), r = rowEls[row];
+    r.row.className = "item" + (s.v ? " is-" + s.v : "");
+    ["p", "f", "n"].forEach(function (k) {
+      $("b-" + row + "-" + k).setAttribute("aria-pressed", s.v === k ? "true" : "false");
+    });
+    r.nb.className = "note-btn" + (s.note && s.note.trim() ? " has" : "");
+    if (r.ta.value !== s.note) { r.ta.value = s.note || ""; }
+    if ((s.note && s.note.trim()) || s.v === "f") { r.note.hidden = false; }
+  }
+  function toggleNote(row, focus) {
+    var r = rowEls[row];
+    var s = it(row);
+    if (!r.note.hidden && !(s.note && s.note.trim()) && s.v !== "f") { r.note.hidden = true; return; }
+    r.note.hidden = false;
+    if (focus) { r.ta.focus(); }
+  }
+  function setValue(row, v) {
+    var s = it(row);
+    s.v = (s.v === v) ? "" : v;
+    if (s.v !== "f" && !(s.note && s.note.trim())) { rowEls[row].note.hidden = true; }
+    paintRow(row);
+    tally();
+    persist();
+  }
+
+  var undo = null, toastTimer = null;
+  function markRestNA(ci) {
+    var changed = [];
+    CATS[ci].items.forEach(function (item) {
+      var s = it(item.row);
+      if (!s.v) { s.v = "n"; changed.push(item.row); paintRow(item.row); }
+    });
+    if (!changed.length) { return; }
+    tally(); persist();
+    toast(changed.length + (changed.length === 1 ? " check" : " checks") + " marked N/A", changed);
+  }
+  function toast(msg, undoRows) {
+    undo = undoRows || null;
+    $("toast-msg").textContent = msg;
+    $("toast-undo").hidden = !undo;
+    $("toast").hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { $("toast").hidden = true; undo = null; }, 7000);
+  }
+  $("toast-undo").addEventListener("click", function () {
+    if (undo) {
+      undo.forEach(function (row) { it(row).v = ""; paintRow(row); });
+      tally(); persist();
+    }
+    undo = null; $("toast").hidden = true;
+  });
+
+  function counts() {
+    var c = { p: 0, f: 0, n: 0, left: 0, firstLeft: null };
+    CATS.forEach(function (cat) {
+      cat.items.forEach(function (item) {
+        var v = it(item.row).v;
+        if (v) { c[v]++; } else { c.left++; if (c.firstLeft == null) { c.firstLeft = item.row; } }
+      });
+    });
+    c.score = (c.p + c.f) ? c.p / (c.p + c.f) : null;
+    return c;
+  }
+  function pct(x) { return x == null ? "–" : Math.round(x * 100) + "%"; }
+  function tally() {
+    var c = counts();
+    $("t-pass").textContent = c.p; $("t-fail").textContent = c.f;
+    $("t-na").textContent = c.n; $("t-left").textContent = c.left;
+    $("t-score").textContent = pct(c.score);
+    CATS.forEach(function (cat, ci) {
+      var done = 0, bad = 0;
+      cat.items.forEach(function (item) { var v = it(item.row).v; if (v) { done++; } if (v === "f") { bad++; } });
+      var txt = done + "/" + cat.items.length;
+      railEls[ci].querySelector(".ct").textContent = txt;
+      railEls[ci].querySelector(".dot").className = "dot" + (bad ? " bad" : done === cat.items.length ? " done" : done ? " some" : "");
+      secEls[ci].querySelector(".sec-head .ct").textContent = txt + " answered" + (bad ? " · " + bad + " failed" : "");
+      $("allna-" + ci).hidden = done === cat.items.length;
+    });
+    return c;
+  }
+
+  /* details */
+  var META_INPUTS = { lead: "f-lead", inspector: "f-inspector", date: "f-date", job: "f-job", evm: "f-evm" };
+  Object.keys(META_INPUTS).forEach(function (k) {
+    var inp = $(META_INPUTS[k]);
+    inp.addEventListener("input", function () { state.meta[k] = inp.value; paintMeta(false); persistSoon(); });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll(".seg[data-meta]"), function (seg) {
+    var k = seg.getAttribute("data-meta");
+    Array.prototype.forEach.call(seg.querySelectorAll("button"), function (b) {
+      b.addEventListener("click", function () {
+        var val = b.getAttribute("data-val");
+        state.meta[k] = state.meta[k] === val ? "" : val;
+        paintMeta(false); persist();
+      });
+    });
+  });
+  function paintMeta(fill) {
+    if (fill) { Object.keys(META_INPUTS).forEach(function (k) { $(META_INPUTS[k]).value = state.meta[k] || ""; }); }
+    Array.prototype.forEach.call(document.querySelectorAll(".seg[data-meta]"), function (seg) {
+      var k = seg.getAttribute("data-meta");
+      Array.prototype.forEach.call(seg.querySelectorAll("button"), function (b) {
+        b.setAttribute("aria-pressed", state.meta[k] === b.getAttribute("data-val") ? "true" : "false");
+      });
+    });
+    var m = state.meta;
+    $("subtitle").textContent = (m.lead ? m.lead : "New inspection") + (m.date ? " · " + m.date : "");
+  }
+  function paintAll() {
+    paintMeta(true);
+    Object.keys(rowEls).forEach(function (row) {
+      rowEls[row].note.hidden = true;
+      paintRow(row);
+    });
+    tally();
+  }
+  paintAll();
+  persist();
+
+  /* rail highlight */
+  var ticking = false;
+  function spy() {
+    ticking = false;
+    var narrow = window.matchMedia("(max-width: 860px)").matches;
+    var line = (narrow ? document.querySelector(".rail").offsetHeight : document.querySelector(".topbar").offsetHeight) + 40;
+    var cur = -1;
+    for (var i = 0; i < secEls.length; i++) {
+      if (secEls[i].getBoundingClientRect().top <= line) { cur = i; }
+    }
+    railEls.forEach(function (a, i) {
+      var on = i === cur;
+      if (on !== (a.className === "here")) {
+        a.className = on ? "here" : "";
+        if (on && narrow && a.scrollIntoView) {
+          var ol = $("rail");
+          ol.scrollLeft = a.offsetLeft - ol.offsetLeft - 16;
+        }
+      }
+    });
+  }
+  window.addEventListener("scroll", function () { if (!ticking) { ticking = true; window.requestAnimationFrame(spy); } }, { passive: true });
+  spy();
+
+  /* ---------- workbook engine: shared by the form's export and the office merge ---------- */
+  var ITEM_ROWS = [];
+  CATS.forEach(function (cat) { cat.items.forEach(function (item) { ITEM_ROWS.push(item.row); }); });
+
+  function colName(n) {
+    var s = "";
+    while (n > 0) { var r = (n - 1) % 26; s = String.fromCharCode(65 + r) + s; n = Math.floor((n - 1) / 26); }
+    return s;
+  }
+  function colNum(ref) {
+    var n = 0, i = 0, c;
+    while (i < ref.length && (c = ref.charCodeAt(i)) >= 65 && c <= 90) { n = n * 26 + (c - 64); i++; }
+    return n;
+  }
+  function xmlEsc(t) {
+    return String(t).replace(/[^\x09\x0A\x0D\x20-퟿-￼]/g, "")
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+  function xmlUn(t) {
+    return String(t).replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'")
+      .replace(/&#x([0-9a-fA-F]+);/g, function (a, h) { return String.fromCharCode(parseInt(h, 16)); })
+      .replace(/&#(\d+);/g, function (a, d) { return String.fromCharCode(+d); })
+      .replace(/_x000[dD]_/g, "").replace(/&amp;/g, "&");
+  }
+  function findCell(rowXml, ref) {
+    var m = new RegExp('<c r="' + ref + '"([^>]*?)(/>|>[\\s\\S]*?</c>)').exec(rowXml);
+    if (!m) { return null; }
+    var s = /\bs="(\d+)"/.exec(m[1]), t = /\bt="([^"]+)"/.exec(m[1]);
+    return { index: m.index, xml: m[0], style: s ? s[1] : null, type: t ? t[1] : null };
+  }
+  // Replace one cell in a row, or insert it in column order. A new cell takes its style from styleRef, the same row's cell in the first block.
+  function setCell(rowXml, ref, build, styleRef) {
+    var m = findCell(rowXml, ref);
+    if (m) { return rowXml.slice(0, m.index) + build(m.style, m.xml) + rowXml.slice(m.index + m.xml.length); }
+    var like = styleRef ? findCell(rowXml, styleRef) : null;
+    var made = build(like ? like.style : null, "");
+    if (!made) { return rowXml; }
+    var target = colNum(ref), cre = /<c r="([A-Z]+)\d+"/g, c, at = rowXml.lastIndexOf("</row>");
+    while ((c = cre.exec(rowXml))) {
+      if (colNum(c[1]) > target) { at = c.index; break; }
+    }
+    return rowXml.slice(0, at) + made + rowXml.slice(at);
+  }
+  function sAttr(s) { return s ? ' s="' + s + '"' : ""; }
+  // keepBlank: with nothing to write, leave the sheet's own cell exactly as it is.
+  function strCell(ref, text, keepBlank) {
+    return function (s, old) {
+      if (text === "" || text == null) { return keepBlank ? old : '<c r="' + ref + '"' + sAttr(s) + "/>"; }
+      return '<c r="' + ref + '"' + sAttr(s) + ' t="inlineStr"><is><t xml:space="preserve">' + xmlEsc(text) + "</t></is></c>";
+    };
+  }
+  function numCell(ref, num) {
+    return function (s) {
+      if (num == null || isNaN(num)) { return '<c r="' + ref + '"' + sAttr(s) + "/>"; }
+      return '<c r="' + ref + '"' + sAttr(s) + "><v>" + num + "</v></c>";
+    };
+  }
+  function anyCell(ref, val) { return typeof val === "number" ? numCell(ref, val) : strCell(ref, val == null ? "" : String(val).trim()); }
+  function boolCell(ref, on) {
+    return function (s) { return '<c r="' + ref + '"' + sAttr(s) + ' t="b"><v>' + (on ? 1 : 0) + "</v></c>"; };
+  }
+  function formulaCell(ref, value, formula) {
+    return function (s, old) {
+      var f = /<f>[\s\S]*?<\/f>/.exec(old);
+      var body = f ? f[0] : "<f>" + formula + "</f>";
+      if (value === null) { return '<c r="' + ref + '"' + sAttr(s) + ' t="e">' + body + "<v>#DIV/0!</v></c>"; }
+      return '<c r="' + ref + '"' + sAttr(s) + ">" + body + "<v>" + value + "</v></c>";
+    };
+  }
+  function tallyRows(rows) {
+    var c = { p: 0, f: 0, n: 0 };
+    ITEM_ROWS.forEach(function (r) { var v = rows[r] && rows[r].v; if (v) { c[v]++; } });
+    c.score = (c.p + c.f) ? c.p / (c.p + c.f) : null;
+    return c;
+  }
+  // Write one inspection into block k of the checklist sheet. Block 0 is columns D:G, block 1 is H:K, and so on.
+  // data: { lead, inspector, announced, mode, date, job, evm, rows: { rowNumber: { v: "p"|"f"|"n"|"", note } } }
+  function fillSheet(sheet, k, data) {
+    var base = 4 + 4 * k;
+    var cP = colName(base), cF = colName(base + 1), cN = colName(base + 2), cG = colName(base + 3);
+    var c = tallyRows(data.rows);
+    var head = { 1: data.lead, 2: data.inspector, 3: data.announced, 4: data.mode, 5: data.date, 6: data.job, 7: data.evm };
+    var isItem = {};
+    ITEM_ROWS.forEach(function (r) { isItem[r] = true; });
+    return sheet.replace(/<row r="(\d+)"[^>]*>[\s\S]*?<\/row>/g, function (rowXml, rs) {
+      var r = +rs;
+      if (r >= 1 && r <= 7) { return setCell(rowXml, cG + r, anyCell(cG + r, head[r]), "G" + r); }
+      if (r === 8) {
+        rowXml = setCell(rowXml, cP + 8, formulaCell(cP + 8, c.p, "COUNTIF(" + cP + "10:" + cP + "106, TRUE)"), "D8");
+        rowXml = setCell(rowXml, cF + 8, formulaCell(cF + 8, c.f, "COUNTIF(" + cF + "10:" + cF + "106, TRUE)"), "E8");
+        rowXml = setCell(rowXml, cN + 8, formulaCell(cN + 8, c.n, "COUNTIF(" + cN + "10:" + cN + "106, TRUE)"), "F8");
+        return setCell(rowXml, cG + 8, formulaCell(cG + 8, c.score, cP + "8/(" + cP + "8+" + cF + "8)"), "G8");
+      }
+      if (isItem[r]) {
+        var s = data.rows[r] || { v: "", note: "" };
+        rowXml = setCell(rowXml, cP + r, boolCell(cP + r, s.v === "p"), "D" + r);
+        rowXml = setCell(rowXml, cF + r, boolCell(cF + r, s.v === "f"), "E" + r);
+        rowXml = setCell(rowXml, cN + r, boolCell(cN + r, s.v === "n"), "F" + r);
+        return setCell(rowXml, cG + r, strCell(cG + r, (s.note || "").trim(), true), "G" + r);
+      }
+      return rowXml;
+    });
+  }
+  // Ask Excel to recalculate when it opens the file, so the score row is never stale.
+  function markRecalc(wbx) {
+    if (/<calcPr[^>]*\/>/.test(wbx)) {
+      return wbx.replace(/<calcPr([^>]*)\/>/, function (all, attrs) {
+        return "<calcPr" + attrs.replace(/\s*fullCalcOnLoad="[^"]*"/, "") + ' fullCalcOnLoad="1"/>';
+      });
+    }
+    return wbx.replace("</workbook>", '<calcPr fullCalcOnLoad="1"/></workbook>');
+  }
+  function needZip() {
+    if (typeof fflate === "undefined") { throw new Error("The file builder did not load. Check the connection and reload the page."); }
+  }
+
+  /* reading a workbook back */
+  function openBook(u8) {
+    needZip();
+    var files = fflate.unzipSync(u8);
+    var wbx = files["xl/workbook.xml"], rels = files["xl/_rels/workbook.xml.rels"];
+    if (!wbx || !rels) { throw new Error("not a workbook"); }
+    wbx = fflate.strFromU8(wbx); rels = fflate.strFromU8(rels);
+    var rid = null, m, re = /<sheet\b[^>]*>/g;
+    while ((m = re.exec(wbx))) {
+      if (/\bname="QA Checklist"/.test(m[0])) { var q = /\br:id="([^"]+)"/.exec(m[0]); rid = q && q[1]; }
+    }
+    if (!rid) { throw new Error("no checklist tab"); }
+    var path = null;
+    re = /<Relationship\b[^>]*>/g;
+    while ((m = re.exec(rels))) {
+      if (new RegExp('\\bId="' + rid + '"').test(m[0])) { var t = /\bTarget="([^"]+)"/.exec(m[0]); path = t && t[1]; }
+    }
+    if (!path) { throw new Error("no checklist tab"); }
+    path = path.charAt(0) === "/" ? path.slice(1) : "xl/" + path;
+    if (!files[path]) { throw new Error("no checklist tab"); }
+    var book = { files: files, path: path, sheet: fflate.strFromU8(files[path]), rows: {}, ss: null };
+    book.sheet.replace(/<row r="(\d+)"[^>]*>[\s\S]*?<\/row>/g, function (rowXml, rs) { book.rows[+rs] = rowXml; return ""; });
+    return book;
+  }
+  function sharedStrings(book) {
+    if (book.ss) { return book.ss; }
+    var out = [], raw = book.files["xl/sharedStrings.xml"];
+    if (raw) {
+      fflate.strFromU8(raw).replace(/<si>([\s\S]*?)<\/si>|<si\/>/g, function (all, inner) {
+        var txt = "";
+        (inner || "").replace(/<rPh[\s\S]*?<\/rPh>/g, "").replace(/<t(?:\s[^>]*)?>([\s\S]*?)<\/t>/g, function (a, t) { txt += xmlUn(t); return ""; });
+        out.push(txt);
+        return "";
+      });
+    }
+    book.ss = out;
+    return out;
+  }
+  function cellValue(book, r, col) {
+    var rowXml = book.rows[r];
+    if (!rowXml) { return null; }
+    var c = findCell(rowXml, col + r);
+    if (!c) { return null; }
+    if (c.type === "inlineStr") {
+      var txt = "";
+      c.xml.replace(/<t(?:\s[^>]*)?>([\s\S]*?)<\/t>/g, function (a, t) { txt += xmlUn(t); return ""; });
+      return txt;
+    }
+    var v = /<v>([\s\S]*?)<\/v>/.exec(c.xml);
+    if (!v) { return null; }
+    if (c.type === "s") { var s = sharedStrings(book)[+v[1]]; return s == null ? null : s; }
+    if (c.type === "b") { return v[1] === "1"; }
+    if (c.type === "str") { return xmlUn(v[1]); }
+    if (c.type === "e") { return null; }
+    var num = parseFloat(v[1]);
+    return isNaN(num) ? null : num;
+  }
+  function hasText(v) { return v != null && v !== false && String(v).trim() !== ""; }
+  function blockCount(book) {
+    var k = 0;
+    while (k < 400 && hasText(cellValue(book, 9, colName(4 + 4 * k)))) { k++; }
+    return k;
+  }
+  function readBlock(book, k) {
+    var base = 4 + 4 * k;
+    var cP = colName(base), cF = colName(base + 1), cN = colName(base + 2), cG = colName(base + 3);
+    var d = { rows: {}, used: false };
+    var keys = ["lead", "inspector", "announced", "mode", "date", "job", "evm"];
+    keys.forEach(function (key, i) {
+      var v = cellValue(book, i + 1, cG);
+      d[key] = typeof v === "string" ? v.trim() : v;
+      if (hasText(v)) { d.used = true; }
+    });
+    ITEM_ROWS.forEach(function (r) {
+      var v = cellValue(book, r, cP) === true ? "p" : cellValue(book, r, cF) === true ? "f" : cellValue(book, r, cN) === true ? "n" : "";
+      var note = cellValue(book, r, cG);
+      note = typeof note === "string" ? note.trim() : "";
+      if (v || note) { d.used = true; }
+      d.rows[r] = { v: v, note: note };
+    });
+    return d;
+  }
+  function squash(t) { return String(t == null ? "" : t).replace(/\s+/g, " ").trim().toLowerCase(); }
+  function checklistKey(book) {
+    return ITEM_ROWS.map(function (r) { return squash(cellValue(book, r, "B")); }).join("|");
+  }
+  function inspectionKey(d) { return [squash(d.lead), squash(d.inspector), squash(d.date)].join("|"); }
+  function serialToISO(n) {
+    if (typeof n !== "number") { return n ? String(n) : ""; }
+    var dt = new Date(Math.round((n - 25569) * 86400000));
+    var p = function (x) { return (x < 10 ? "0" : "") + x; };
+    return dt.getUTCFullYear() + "-" + p(dt.getUTCMonth() + 1) + "-" + p(dt.getUTCDate());
+  }
+
+  /* the form's own export */
+  function formData() {
+    var m = state.meta, serial = null;
+    var d = /^(\d{4})-(\d{2})-(\d{2})$/.exec(m.date || "");
+    if (d) { serial = Math.round(Date.UTC(+d[1], +d[2] - 1, +d[3]) / 86400000) + 25569; }
+    var evm = m.evm === "" || m.evm == null || isNaN(parseFloat(m.evm)) ? null : Math.max(0, Math.min(100, parseFloat(m.evm))) / 100;
+    var rows = {};
+    ITEM_ROWS.forEach(function (r) { var s = it(r); rows[r] = { v: s.v, note: s.note || "" }; });
+    return { lead: m.lead.trim(), inspector: m.inspector.trim(), announced: m.announced, mode: m.mode, date: serial, job: m.job.trim(), evm: evm, rows: rows };
+  }
+  function buildWorkbook(block) {
+    needZip();
+    var parts = JSON.parse(document.getElementById("tpl").textContent);
+    var sheetPath = "xl/worksheets/sheet2.xml";
+    parts[sheetPath].t = fillSheet(parts[sheetPath].t, block, formData());
+    parts["xl/workbook.xml"].t = markRecalc(parts["xl/workbook.xml"].t);
+    var files = {};
+    Object.keys(parts).forEach(function (name) {
+      var p = parts[name];
+      if (p.t != null) { files[name] = fflate.strToU8(p.t); }
+      else {
+        var bin = atob(p.b), u8 = new Uint8Array(bin.length);
+        for (var i = 0; i < bin.length; i++) { u8[i] = bin.charCodeAt(i); }
+        files[name] = u8;
+      }
+    });
+    return fflate.zipSync(files, { level: 6 });
+  }
+
+  function fileName() {
+    var lead = (state.meta.lead || "").trim().replace(/[^A-Za-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "Check";
+    return "SLIC_" + lead + "_" + (state.meta.date || todayISO()) + ".xlsx";
+  }
+
+  var XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+  var HOSTED = !(window.claude && typeof window.claude.use === "function");
+  // On a tablet, a self-hosted copy of this page can hand files to the share sheet (Box, email, and so on).
+  function canShareFiles(files) {
+    try { return HOSTED && window.matchMedia("(pointer: coarse)").matches && !!navigator.canShare && navigator.canShare({ files: files }); }
+    catch (e) { return false; }
+  }
+  // Returns "saved" or "declined"; throws with a readable message otherwise.
+  function saveFile(bytes, name, mime, noShare) {
+    mime = mime || XLSX_MIME;
+    var blob = bytes instanceof Blob ? bytes : new Blob([bytes], { type: mime });
+    if (window.claude && typeof window.claude.use === "function") {
+      return window.claude.use("downloads").then(function (dl) {
+        if (!dl) { throw new Error("Saving files is not available in this view. Open the page in a full browser tab and try again."); }
+        return dl.save({ filename: name, data: blob }).then(function () { return "saved"; }, function (err) {
+          if (err && err.code === "declined") { return "declined"; }
+          throw new Error("The file could not be saved" + (err && err.code ? " (" + err.code + ")." : "."));
+        });
+      });
+    }
+    // Self-hosted copy of this page: hand the file to the tablet's share sheet, or download it.
+    try {
+      var file = new File([blob], name, { type: mime });
+      if (!noShare && canShareFiles([file])) {
+        return navigator.share({ files: [file], title: name }).then(function () { return "saved"; }, function (err) {
+          if (err && err.name === "AbortError") { return "declined"; }
+          throw new Error("Sharing the file failed.");
+        });
+      }
+    } catch (e) {}
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
+    return Promise.resolve("saved");
+  }
+
+  /* ---------- photos: shrink, keep in the form, and save a named copy straight away ---------- */
+  var photos = {};   // row -> [{ id, row, n, name, w, h, buf }]
+  var idb = null;
+  function idbOpen() {
+    return new Promise(function (resolve) {
+      try {
+        var rq = indexedDB.open("orion-qa-photos", 1);
+        rq.onupgradeneeded = function () { rq.result.createObjectStore("photos", { keyPath: "id" }); };
+        rq.onsuccess = function () { idb = rq.result; resolve(true); };
+        rq.onerror = function () { resolve(false); };
+        rq.onblocked = function () { resolve(false); };
+      } catch (e) { resolve(false); }
+    });
+  }
+  function idbDo(mode, fn) {
+    return new Promise(function (resolve) {
+      if (!idb) { resolve(null); return; }
+      try {
+        var tx = idb.transaction("photos", mode), rq = fn(tx.objectStore("photos"));
+        tx.oncomplete = function () { resolve(rq && rq.result !== undefined ? rq.result : true); };
+        tx.onerror = function () { resolve(null); };
+        tx.onabort = function () { resolve(null); };
+      } catch (e) { resolve(null); }
+    });
+  }
+  function plain(rec) { return { id: rec.id, row: rec.row, n: rec.n, name: rec.name, w: rec.w, h: rec.h, buf: rec.buf }; }
+  function photoList(row) { return photos[row] || []; }
+  function photoUrl(rec) {
+    if (!rec.url) { rec.url = URL.createObjectURL(new Blob([rec.buf], { type: "image/jpeg" })); }
+    return rec.url;
+  }
+  function paintThumbs(row) {
+    var r = rowEls[row], list = photoList(row);
+    r.thumbs.textContent = "";
+    r.thumbs.hidden = !list.length;
+    list.forEach(function (rec) {
+      var b = el("button", "thumb");
+      b.type = "button";
+      b.setAttribute("aria-label", "Photo " + rec.n + ". Tap to view or remove.");
+      var img = document.createElement("img");
+      img.src = photoUrl(rec); img.alt = "";
+      b.appendChild(img);
+      b.addEventListener("click", function () { openPhoto(rec); });
+      r.thumbs.appendChild(b);
+    });
+    r.pb.className = "note-btn" + (list.length ? " has" : "");
+    r.pb.textContent = list.length ? "Photo (" + list.length + ")" : "Photo";
+  }
+  var viewing = null;
+  function openPhoto(rec) {
+    viewing = rec;
+    $("ph-img").src = photoUrl(rec);
+    $("ph-cap").textContent = rec.name;
+    $("photo-veil").hidden = false;
+    $("ph-close").focus();
+  }
+  $("ph-close").addEventListener("click", function () { $("photo-veil").hidden = true; viewing = null; });
+  $("ph-remove").addEventListener("click", function () {
+    var rec = viewing;
+    $("photo-veil").hidden = true; viewing = null;
+    if (!rec) { return; }
+    photos[rec.row] = photoList(rec.row).filter(function (x) { return x !== rec; });
+    if (rec.url) { URL.revokeObjectURL(rec.url); }
+    idbDo("readwrite", function (st) { return st["delete"](rec.id); });
+    paintThumbs(rec.row);
+    toast("Photo removed from the form. A copy already saved to the tablet is not deleted.");
+  });
+  function clearPhotos() {
+    Object.keys(photos).forEach(function (row) { photos[row].forEach(function (rec) { if (rec.url) { URL.revokeObjectURL(rec.url); } }); });
+    photos = {};
+    idbDo("readwrite", function (st) { return st.clear(); });
+    Object.keys(rowEls).forEach(function (row) { paintThumbs(row); });
+  }
+  idbOpen().then(function () { return idbDo("readonly", function (st) { return st.getAll(); }); }).then(function (all) {
+    if (all && all.length) {
+      all.sort(function (a, b) { return a.row - b.row || a.n - b.n; });
+      all.forEach(function (rec) { if (rowEls[rec.row]) { (photos[rec.row] = photos[rec.row] || []).push(rec); } });
+      Object.keys(photos).forEach(function (row) { paintThumbs(row); });
+    }
+  });
+
+  function slug(t, max) {
+    return String(t || "").trim().replace(/[^A-Za-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, max || 60).replace(/-+$/, "");
+  }
+  function photoName(item, n) {
+    return fileName().replace(/\.xlsx$/, "") + "_Row" + item.row + "_" + slug(item.check, 40) + "_" + n + ".jpg";
+  }
+  function toBuffer(blob) {
+    if (blob.arrayBuffer) { return blob.arrayBuffer(); }
+    return new Promise(function (resolve, reject) {
+      var fr = new FileReader();
+      fr.onload = function () { resolve(fr.result); };
+      fr.onerror = function () { reject(new Error("The photo could not be read.")); };
+      fr.readAsArrayBuffer(blob);
+    });
+  }
+  function shrink(file) {
+    return new Promise(function (resolve, reject) {
+      var url = URL.createObjectURL(file), img = new Image();
+      img.onload = function () {
+        var max = 1600, w = img.naturalWidth, h = img.naturalHeight;
+        var k = Math.min(1, max / Math.max(w, h));
+        var cv = document.createElement("canvas");
+        cv.width = Math.max(1, Math.round(w * k)); cv.height = Math.max(1, Math.round(h * k));
+        cv.getContext("2d").drawImage(img, 0, 0, cv.width, cv.height);
+        URL.revokeObjectURL(url);
+        cv.toBlob(function (b) {
+          if (b) { resolve({ blob: b, w: cv.width, h: cv.height }); } else { reject(new Error("The photo could not be processed.")); }
+        }, "image/jpeg", 0.82);
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); reject(new Error("That file could not be read as a photo.")); };
+      img.src = url;
+    });
+  }
+  function takePhoto(item, file, btn) {
+    var s = it(item.row), n = (s.photos || 0) + 1, name = photoName(item, n), shot;
+    btn.disabled = true;
+    shrink(file).then(function (res) {
+      shot = res;
+      return toBuffer(res.blob);
+    }).then(function (buf) {
+      var rec = { id: item.row + "-" + n + "-" + Date.now(), row: item.row, n: n, name: name, w: shot.w, h: shot.h, buf: buf };
+      (photos[item.row] = photos[item.row] || []).push(rec);
+      s.photos = n;
+      persist();
+      paintThumbs(item.row);
+      return idbDo("readwrite", function (st) { return st.put(plain(rec)); }).then(function (kept) {
+        return saveFile(shot.blob, name, "image/jpeg", true).then(function (res) {
+          btn.disabled = false;
+          if (res === "saved") { toast(kept ? "Photo added and saved as " + name : "Photo saved as " + name + ". This browser cannot keep it in the form if the page closes."); }
+          else { toast("Photo added to the form. The separate copy was not saved."); }
+        });
+      });
+    }).then(null, function (e) {
+      btn.disabled = false;
+      toast(e && e.message ? e.message : "The photo could not be added.");
+    });
+  }
+
+  /* ---------- PDF report ---------- */
+  function pdfText(t) {
+    return String(t == null ? "" : t)
+      .replace(/[‘’′]/g, "'").replace(/[“”″]/g, '"').replace(/[–—]/g, "-").replace(/…/g, "...")
+      .replace(/ /g, " ").replace(/[^\x09\x0A\x20-\x7E¡-ÿ]/g, "?");
+  }
+  function buildReport() {
+    if (!window.jspdf || !window.jspdf.jsPDF) { throw new Error("The report builder did not load. Check the connection and reload the page."); }
+    var doc = new window.jspdf.jsPDF({ unit: "pt", format: "letter", compress: true });
+    var W = 612, H = 792, M = 44, CW = W - 2 * M, y = M;
+    var m = state.meta, c = counts();
+    var INK = [21, 32, 43], MUTED = [86, 100, 115], RED = [189, 51, 36], GREEN = [23, 118, 74], GREY = [93, 104, 117], LINE = [210, 217, 224];
+    var LABEL = { p: "PASS", f: "FAIL", n: "N/A", "": "-" }, TONE = { p: GREEN, f: RED, n: GREY, "": GREY };
+    function room(h) { if (y + h > H - M - 18) { doc.addPage(); y = M; } }
+    function color(rgb) { doc.setTextColor(rgb[0], rgb[1], rgb[2]); }
+    function write(t, x, size, style, rgb, maxW, gap) {
+      doc.setFont("helvetica", style || "normal"); doc.setFontSize(size);
+      var lines = doc.splitTextToSize(pdfText(t), maxW || (W - M - x)), lh = size * 1.28;
+      lines.forEach(function (ln) { room(lh); color(rgb || INK); doc.text(ln, x, y + size); y += lh; });
+      y += gap || 0;
+    }
+    function rule() { doc.setDrawColor(LINE[0], LINE[1], LINE[2]); doc.setLineWidth(0.8); doc.line(M, y, W - M, y); y += 10; }
+    function heading(t) { room(60); y += 8; write(t, M, 15, "bold", INK, CW, 2); rule(); }
+    function photoRows(list) {
+      var gap = 10, pw = (CW - gap) / 2, i = 0;
+      while (i < list.length) {
+        var pair = list.slice(i, i + 2), hs = pair.map(function (rec) { return Math.min(210, pw * rec.h / rec.w); });
+        var rowH = Math.max.apply(null, hs);
+        room(rowH + 10);
+        pair.forEach(function (rec, j) {
+          var h = hs[j], w = h * rec.w / rec.h;
+          try { doc.addImage(new Uint8Array(rec.buf), "JPEG", M + j * (pw + gap), y, w, h, rec.id, "FAST"); } catch (e) {}
+        });
+        y += rowH + 10;
+        i += 2;
+      }
+    }
+    function detail(cat, item) {
+      var s = it(item.row), list = photoList(item.row);
+      room(64);
+      write(cat.name.toUpperCase(), M, 8, "bold", MUTED, CW, 1);
+      doc.setFont("helvetica", "bold"); doc.setFontSize(9);
+      var tag = LABEL[s.v], tw = doc.getTextWidth(tag);
+      color(TONE[s.v]); doc.text(tag, W - M - tw, y + 11);
+      write(item.check, M, 12, "bold", INK, CW - tw - 12, 1);
+      if (item.expected) { write("Expected: " + item.expected, M, 9.5, "normal", MUTED, CW, 2); }
+      if (s.note && s.note.trim()) { write("Note: " + s.note.trim(), M, 10.5, "normal", INK, CW, 2); }
+      if (list.length) { y += 4; photoRows(list); }
+      y += 6;
+      doc.setDrawColor(LINE[0], LINE[1], LINE[2]); doc.setLineWidth(0.5); room(8); doc.line(M, y, W - M, y); y += 8;
+    }
+
+    write("SITE LEAD INSTALLATION CHECK", M, 20, "bold", INK, CW, 4);
+    rule();
+    var top = y;
+    [["Site lead", m.lead], ["Inspector", m.inspector], ["Inspection start date", m.date], ["Announced in advance", m.announced],
+      ["Virtual or in-person", m.mode], ["SimPro job number", m.job], ["Physical % complete (EVM)", m.evm === "" ? "" : m.evm + "%"]].forEach(function (kv) {
+      var y0 = y;
+      write(kv[0], M, 9.5, "normal", MUTED, 150);
+      y = y0;
+      write(kv[1] || "-", M + 160, 10.5, "bold", INK, CW - 160 - 150, 3);
+    });
+    var bx = W - M - 132, bh = 86;
+    doc.setFillColor(21, 32, 43); doc.rect(bx, top, 132, bh, "F");
+    doc.setFont("helvetica", "bold"); doc.setFontSize(34); doc.setTextColor(255, 255, 255);
+    var sc = pct(c.score).replace("–", "-");
+    doc.text(sc, bx + 66 - doc.getTextWidth(sc) / 2, top + 44);
+    doc.setFont("helvetica", "normal"); doc.setFontSize(9);
+    var sub = c.p + " pass  |  " + c.f + " fail  |  " + c.n + " N/A";
+    doc.text(sub, bx + 66 - doc.getTextWidth(sub) / 2, top + 66);
+    y = Math.max(y, top + bh) + 10;
+
+    var fails = [], others = [];
+    CATS.forEach(function (cat) {
+      cat.items.forEach(function (item) {
+        var s = it(item.row), extra = (s.note && s.note.trim()) || photoList(item.row).length;
+        if (s.v === "f") { fails.push([cat, item]); } else if (extra) { others.push([cat, item]); }
+      });
+    });
+    heading("Failed checks (" + fails.length + ")");
+    if (!fails.length) { write("No checks failed.", M, 10.5, "normal", MUTED, CW, 6); }
+    fails.forEach(function (ci) { detail(ci[0], ci[1]); });
+    if (others.length) {
+      heading("Other notes and photos (" + others.length + ")");
+      others.forEach(function (ci) { detail(ci[0], ci[1]); });
+    }
+
+    heading("Full checklist");
+    CATS.forEach(function (cat) {
+      room(40);
+      write(cat.name, M, 11, "bold", INK, CW, 3);
+      cat.items.forEach(function (item) {
+        var s = it(item.row);
+        room(13);
+        doc.setFont("helvetica", "bold"); doc.setFontSize(8.5); color(TONE[s.v]); doc.text(LABEL[s.v], M, y + 9.5);
+        write(item.check, M + 40, 9.5, "normal", INK, CW - 40, 1.5);
+      });
+      y += 7;
+    });
+    y += 4; rule();
+    DATA.footnotes.forEach(function (t) { write(t, M, 8, "normal", MUTED, CW, 4); });
+
+    var pages = doc.getNumberOfPages();
+    for (var i = 1; i <= pages; i++) {
+      doc.setPage(i);
+      doc.setFont("helvetica", "normal"); doc.setFontSize(8); color(MUTED);
+      doc.text(pdfText("SLIC  |  " + (m.lead || "") + "  |  " + (m.date || "")), M, H - 26);
+      var pn = "Page " + i + " of " + pages;
+      doc.text(pn, W - M - doc.getTextWidth(pn), H - 26);
+    }
+    return doc.output("arraybuffer");
+  }
+
+  /* ---------- finish dialog ---------- */
+  function status(kind, text) {
+    var s = $("fin-status");
+    if (!text) { s.hidden = true; return; }
+    s.hidden = false; s.className = "callout" + (kind ? " " + kind : ""); s.textContent = text;
+  }
+  function openFinish() {
+    clearTimeout(saveTimer); persist();
+    var c = tally();
+    $("s-pass").textContent = c.p; $("s-fail").textContent = c.f; $("s-na").textContent = c.n; $("s-score").textContent = pct(c.score);
+    var need = [];
+    var m = state.meta, missing = [];
+    if (!m.lead.trim()) { missing.push("site lead"); }
+    if (!m.inspector.trim()) { missing.push("inspector"); }
+    if (!m.announced) { missing.push("announced in advance"); }
+    if (!m.mode) { missing.push("virtual or in-person"); }
+    if (!m.date) { missing.push("start date"); }
+    if (!m.job.trim()) { missing.push("SimPro job number"); }
+    if (m.evm === "" || m.evm == null || isNaN(parseFloat(m.evm))) { missing.push("% complete"); }
+    if (missing.length) { need.push("Still needed in the details: " + missing.join(", ") + "."); }
+    if (c.left) { need.push(c.left + (c.left === 1 ? " check still needs" : " checks still need") + " an answer. Use N/A for anything that does not apply."); }
+    var blocked = need.length > 0;
+    $("fin-h").textContent = blocked ? "Not finished yet" : "Finish inspection";
+    $("fin-warn").hidden = !blocked;
+    $("fin-warn").textContent = need.join(" ");
+    $("fin-first").hidden = !blocked;
+    $("fin-first").textContent = missing.length ? "Go to the details" : "Go to first unanswered";
+    $("fin-first").onclick = function () {
+      $("finish-veil").hidden = true;
+      if (missing.length) { scrollToEl($("details")); }
+      else if (c.firstLeft != null) { scrollToEl(rowEls[c.firstLeft].row); }
+    };
+    $("fin-save").hidden = blocked;
+    $("fin-files").hidden = blocked;
+    finDone = { pdf: false, xlsx: false };
+    paintFinFiles();
+    status("", "");
+    $("fin-save").disabled = false;
+    $("finish-veil").hidden = false;
+    (blocked ? $("fin-first") : $("fin-save")).focus();
+  }
+  $("finish-top").addEventListener("click", openFinish);
+  $("finish-bottom").addEventListener("click", openFinish);
+  $("fin-back").addEventListener("click", function () { $("finish-veil").hidden = true; });
+  var finDone = { pdf: false, xlsx: false };
+  function reportName() { return fileName().replace(/\.xlsx$/, "") + "_Report.pdf"; }
+  function paintFinFiles() {
+    $("fin-n-pdf").textContent = (finDone.pdf ? "Saved: " : "") + reportName();
+    $("fin-n-xlsx").textContent = (finDone.xlsx ? "Saved: " : "") + fileName();
+    $("fin-f-pdf").className = finDone.pdf ? "done" : "";
+    $("fin-f-xlsx").className = finDone.xlsx ? "done" : "";
+    $("fin-save").textContent = finDone.pdf && finDone.xlsx ? "Saved" : finDone.pdf ? "Save the Excel sheet" : finDone.xlsx ? "Save the report" : "Save report and Excel sheet";
+    $("fin-save").disabled = finDone.pdf && finDone.xlsx;
+  }
+  function saveOne(kind) {
+    if (finDone[kind]) { return Promise.resolve("saved"); }
+    var bytes, name = kind === "pdf" ? reportName() : fileName();
+    try { bytes = kind === "pdf" ? buildReport() : buildWorkbook(0); }
+    catch (e) { return Promise.reject(new Error(e.message || "The file could not be built.")); }
+    return saveFile(bytes, name, kind === "pdf" ? "application/pdf" : XLSX_MIME).then(function (res) {
+      if (res === "saved") { finDone[kind] = true; paintFinFiles(); }
+      return res;
+    });
+  }
+  $("fin-save").addEventListener("click", function () {
+    var btn = $("fin-save");
+    btn.disabled = true;
+    status("", "Building the files\u2026");
+    setTimeout(function () {
+      var bundle = null;
+      try {
+        if (HOSTED && !finDone.pdf && !finDone.xlsx && navigator.canShare) {
+          var all = [new File([buildReport()], reportName(), { type: "application/pdf" }), new File([buildWorkbook(0)], fileName(), { type: XLSX_MIME })];
+          var withPhotos = all.slice();
+          Object.keys(photos).forEach(function (row) {
+            photos[row].forEach(function (rec) { withPhotos.push(new File([rec.buf], rec.name, { type: "image/jpeg" })); });
+          });
+          bundle = canShareFiles(withPhotos) ? withPhotos : canShareFiles(all) ? all : null;
+        }
+      } catch (e) { bundle = null; }
+      if (bundle) {
+        navigator.share({ files: bundle, title: fileName().replace(/\.xlsx$/, "") }).then(function () {
+          finDone.pdf = true; finDone.xlsx = true; paintFinFiles();
+          status("ok", bundle.length > 2 ? "The report, the Excel sheet and " + (bundle.length - 2) + (bundle.length === 3 ? " photo" : " photos") + " were handed to the app you chose." : "The report and the Excel sheet were handed to the app you chose.");
+        }, function () {
+          paintFinFiles();
+          status("", "Nothing was sent. Tap the button to try again.");
+        });
+        return;
+      }
+      saveOne("pdf").then(function (res) {
+        return res === "saved" ? saveOne("xlsx") : res;
+      }).then(function (res) {
+        paintFinFiles();
+        if (finDone.pdf && finDone.xlsx) { status("ok", "Both files are saved. Your answers stay on this tablet until you start a new inspection."); }
+        else { status("", "Not everything was saved. Tap the button to save what is left."); }
+      }, function (e) {
+        paintFinFiles();
+        status("err", e.message || "The file could not be saved.");
+      });
+    }, 30);
+  });
+
+  $("reset").addEventListener("click", function () { $("reset-veil").hidden = false; $("rst-no").focus(); });
+  $("rst-no").addEventListener("click", function () { $("reset-veil").hidden = true; });
+  $("rst-yes").addEventListener("click", function () {
+    state = blank();
+    clearPhotos();
+    paintAll(); persist();
+    $("reset-veil").hidden = true;
+    window.scrollTo(0, 0);
+  });
+  /* ---------- office step: add inspection files to the master workbook ---------- */
+  var mg = { master: null, files: [] };
+  function readFile(file) {
+    return new Promise(function (resolve, reject) {
+      var fr = new FileReader();
+      fr.onload = function () { resolve(new Uint8Array(fr.result)); };
+      fr.onerror = function () { reject(new Error("read failed")); };
+      fr.readAsArrayBuffer(file);
+    });
+  }
+  function describeMaster(name, book) {
+    var total = blockCount(book), used = [], free = [];
+    for (var k = 0; k < total; k++) {
+      var d = readBlock(book, k);
+      if (d.used) { used.push(inspectionKey(d)); } else { free.push(k); }
+    }
+    return { name: name, book: book, total: total, usedKeys: used, free: free, checklist: checklistKey(book) };
+  }
+  function loadMaster(file) {
+    mgStatus("", "");
+    return readFile(file).then(function (u8) {
+      var book;
+      try { book = openBook(u8); } catch (e) { mg.master = { name: file.name, error: "This file has no checklist tab, so it is not the master workbook." }; return; }
+      var m = describeMaster(file.name, book);
+      if (!m.total) { m.error = "The checklist tab in this file has no inspection columns."; }
+      mg.master = m;
+    }, function () { mg.master = { name: file.name, error: "The file could not be read." }; }).then(paintMerge);
+  }
+  function loadInspections(list) {
+    mgStatus("", "");
+    var jobs = Array.prototype.map.call(list, function (file) {
+      return readFile(file).then(function (u8) {
+        var entry = { name: file.name };
+        try {
+          var book = openBook(u8);
+          entry.data = readBlock(book, 0);
+          entry.checklist = checklistKey(book);
+          var total = blockCount(book), extra = 0;
+          for (var k = 1; k < total; k++) { if (readBlock(book, k).used) { extra++; } }
+          if (extra) { entry.error = "This looks like a master workbook, not a single inspection."; }
+          else if (!entry.data.used) { entry.error = "No inspection found in this file."; }
+        } catch (e) { entry.error = "Not an inspection file."; }
+        return entry;
+      }, function () { return { name: file.name, error: "The file could not be read." }; });
+    });
+    return Promise.all(jobs).then(function (entries) {
+      entries.forEach(function (e) {
+        mg.files = mg.files.filter(function (x) { return x.name !== e.name; });
+        mg.files.push(e);
+      });
+      paintMerge();
+    });
+  }
+  // Decide what happens to each chosen file. Returns the ones that will be added, with their target block.
+  function planMerge() {
+    var m = mg.master, ok = m && !m.error;
+    var seen = {}, free = ok ? m.free.slice() : [], plan = [];
+    mg.files.forEach(function (e) {
+      e.state = "wait"; e.msg = "";
+      if (e.error) { e.state = "bad"; e.msg = e.error; return; }
+      var key = inspectionKey(e.data);
+      if (seen[key]) { e.state = "skip"; e.msg = "Same inspection as another file in this list. Skipped."; return; }
+      seen[key] = true;
+      if (!ok) { e.msg = "Waiting for the master workbook."; return; }
+      if (e.checklist !== m.checklist) { e.state = "bad"; e.msg = "The checklist in this file does not match the master. Not added."; return; }
+      if (m.usedKeys.indexOf(key) >= 0) { e.state = "skip"; e.msg = "Already in the master. Skipped."; return; }
+      if (!free.length) { e.state = "bad"; e.msg = "The master has no empty inspection columns left."; return; }
+      e.block = free.shift();
+      e.state = "ok"; e.msg = "Ready. Goes into columns " + colName(4 + 4 * e.block) + " to " + colName(7 + 4 * e.block) + ".";
+      plan.push(e);
+    });
+    return plan;
+  }
+  function paintMerge() {
+    var m = mg.master, box = $("mg-master");
+    if (!m) { box.className = "mg-info"; box.textContent = "No file chosen yet."; }
+    else if (m.error) { box.className = "mg-info bad"; box.textContent = m.name + ": " + m.error; }
+    else {
+      box.className = "mg-info ok";
+      box.textContent = m.name + ": " + m.usedKeys.length + (m.usedKeys.length === 1 ? " inspection" : " inspections") + " in it, room for " + m.free.length + " more.";
+    }
+    var plan = planMerge(), ul = $("mg-list");
+    ul.textContent = "";
+    mg.files.forEach(function (e) {
+      var li = el("li", "mg-" + e.state);
+      var top = el("div", "mg-top");
+      var title = e.data && e.data.used ? (e.data.lead || "No site lead") + " · " + serialToISO(e.data.date) + " · " + pct(tallyRows(e.data.rows).score) : e.name;
+      top.appendChild(el("b", null, title));
+      var rm = el("button", "mg-x", "Remove");
+      rm.type = "button";
+      rm.addEventListener("click", function () { mg.files = mg.files.filter(function (x) { return x !== e; }); mgStatus("", ""); paintMerge(); });
+      top.appendChild(rm);
+      li.appendChild(top);
+      li.appendChild(el("div", "mg-msg", e.msg));
+      if (e.data && e.data.used) { li.appendChild(el("div", "mg-file", e.name)); }
+      ul.appendChild(li);
+    });
+    $("mg-none").hidden = mg.files.length > 0;
+    var go = $("mg-go");
+    go.disabled = !plan.length;
+    go.textContent = plan.length ? "Add " + plan.length + (plan.length === 1 ? " inspection" : " inspections") + " and save the master" : "Add to the master and save";
+  }
+  function mgStatus(kind, text) {
+    var s = $("mg-status");
+    if (!text) { s.hidden = true; return; }
+    s.hidden = false; s.className = "callout" + (kind ? " " + kind : ""); s.textContent = text;
+  }
+  function runMerge() {
+    var plan = planMerge(), m = mg.master;
+    if (!plan.length || !m || m.error) { return; }
+    $("mg-go").disabled = true;
+    mgStatus("", "Building the updated master…");
+    setTimeout(function () {
+      var bytes;
+      try {
+        var sheet = m.book.sheet;
+        plan.forEach(function (e) { sheet = fillSheet(sheet, e.block, e.data); });
+        var files = {};
+        Object.keys(m.book.files).forEach(function (n) { files[n] = m.book.files[n]; });
+        files[m.book.path] = fflate.strToU8(sheet);
+        files["xl/workbook.xml"] = fflate.strToU8(markRecalc(fflate.strFromU8(files["xl/workbook.xml"])));
+        bytes = fflate.zipSync(files, { level: 6 });
+      } catch (e) { mgStatus("err", "The master could not be built. Nothing was changed."); paintMerge(); return; }
+      var n = plan.length, keep = bytes.slice(0);
+      saveFile(bytes, m.name).then(function (res) {
+        if (res !== "saved") { mgStatus("", "Not saved. Nothing was changed."); paintMerge(); return; }
+        try { mg.master = describeMaster(m.name, openBook(keep)); } catch (e) {}
+        paintMerge();
+        mgStatus("ok", "Added " + n + (n === 1 ? " inspection" : " inspections") + " and saved " + m.name + ". Put this file back in Box in place of the old master.");
+      }, function (e) { mgStatus("err", e.message || "The file could not be saved."); paintMerge(); });
+    }, 30);
+  }
+  $("mg-master-in").addEventListener("change", function () { if (this.files[0]) { loadMaster(this.files[0]); } this.value = ""; });
+  $("mg-files-in").addEventListener("change", function () { if (this.files.length) { loadInspections(this.files); } this.value = ""; });
+  $("mg-master-btn").addEventListener("click", function () { $("mg-master-in").click(); });
+  $("mg-files-btn").addEventListener("click", function () { $("mg-files-in").click(); });
+  $("mg-go").addEventListener("click", runMerge);
+  [["mg-drop-master", function (fl) { loadMaster(fl[0]); }], ["mg-drop-files", loadInspections]].forEach(function (pair) {
+    var zone = $(pair[0]);
+    zone.addEventListener("dragover", function (ev) { ev.preventDefault(); zone.classList.add("over"); });
+    zone.addEventListener("dragleave", function () { zone.classList.remove("over"); });
+    zone.addEventListener("drop", function (ev) {
+      ev.preventDefault(); zone.classList.remove("over");
+      if (ev.dataTransfer && ev.dataTransfer.files && ev.dataTransfer.files.length) { pair[1](ev.dataTransfer.files); }
+    });
+  });
+  function route() {
+    var merge = location.hash === "#merge";
+    document.body.className = merge ? "mode-merge" : "";
+    $("merge-view").hidden = !merge;
+    if (merge) { paintMerge(); window.scrollTo(0, 0); }
+  }
+  window.addEventListener("hashchange", route);
+  route();
+
+  document.addEventListener("keydown", function (ev) {
+    if (ev.key === "Escape") { $("finish-veil").hidden = true; $("reset-veil").hidden = true; $("photo-veil").hidden = true; }
+  });
+})();
+</script>
+</body>
+</html>

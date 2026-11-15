@@ -1,0 +1,498 @@
+{
+ "categories": [
+  {
+   "name": "Documentation",
+   "items": [
+    {
+     "row": 10,
+     "check": "Device Schedule up to date",
+     "expected": "(Device Matrix) up to date"
+    },
+    {
+     "row": 11,
+     "check": "As-built drawings updated",
+     "expected": "Drawings reflect final installation"
+    },
+    {
+     "row": 12,
+     "check": "SimPro EVM Tasks",
+     "expected": "All Tasks are up to date and accurate"
+    }
+   ]
+  },
+  {
+   "name": "Enclosure, LSP, IDS panel, etc.",
+   "items": [
+    {
+     "row": 14,
+     "check": "Securely mounted and level",
+     "expected": "To wall, Poll, etc"
+    },
+    {
+     "row": 15,
+     "check": "Entries are properly installed",
+     "expected": "Conduit, Flex, Bushings, Wire, are all properly connected and secure/sealed"
+    },
+    {
+     "row": 16,
+     "check": "Grounding",
+     "expected": "Enclosure is properly grounded"
+    },
+    {
+     "row": 17,
+     "check": "Labeling",
+     "expected": "Devices and wire are all properly labelled."
+    },
+    {
+     "row": 18,
+     "check": "Interior is clean",
+     "expected": "Enclosure is clean and free of debris"
+    },
+    {
+     "row": 19,
+     "check": "Cable management",
+     "expected": "Finger duct, Velcro (no zip ties)"
+    },
+    {
+     "row": 20,
+     "check": "Fire alarm interface tested",
+     "expected": "If maglocks are on the system Fire alarm in connected and working"
+    },
+    {
+     "row": 21,
+     "check": "The correct batteries are installed",
+     "expected": "UPS/backup power tested"
+    },
+    {
+     "row": 22,
+     "check": "Heater, vents, and air conditioners",
+     "expected": "Installed and powered properly"
+    }
+   ]
+  },
+  {
+   "name": "Access Control, Physical Installation",
+   "items": [
+    {
+     "row": 24,
+     "check": "Reader securely mounted and aligned",
+     "expected": "Reader is secure, level, and properly aligned"
+    },
+    {
+     "row": 25,
+     "check": "Electrified locking device",
+     "expected": "Lock is secure and operates correctly"
+    },
+    {
+     "row": 26,
+     "check": "Door position switch",
+     "expected": "Door open/closed status is detected correctly, DPS is installed in proper location"
+    },
+    {
+     "row": 27,
+     "check": "Request-to-exit PIR",
+     "expected": "REX mounted correctly, operates correctly"
+    },
+    {
+     "row": 28,
+     "check": "Exit button",
+     "expected": "Exit Button mounted correctly, operates correctly, mechanically breaks power to mag locks locally for 30 seconds"
+    },
+    {
+     "row": 29,
+     "check": "Cabling",
+     "expected": "Cabling is properly supported, protected, and labeled"
+    },
+    {
+     "row": 30,
+     "check": "Composite cable breakout",
+     "expected": "Above the door, cables and splices are clean, neat, and secured"
+    }
+   ]
+  },
+  {
+   "name": "Access Control, Functional Testing",
+   "items": [
+    {
+     "row": 32,
+     "check": "Event logging tested",
+     "expected": "Access events are recorded correctly"
+    },
+    {
+     "row": 33,
+     "check": "Reader tested",
+     "expected": "Authorized and Unauthorized credential tested"
+    },
+    {
+     "row": 34,
+     "check": "Door unlock time tested",
+     "expected": "Door unlock duration matches requirements (customer/situational requirement)"
+    },
+    {
+     "row": 35,
+     "check": "Door relock tested",
+     "expected": "Door automatically relocks correctly"
+    },
+    {
+     "row": 36,
+     "check": "DPS tested",
+     "expected": "Open/Closed, Door-held, Door-Forced alerts tested"
+    },
+    {
+     "row": 37,
+     "check": "REX tested",
+     "expected": "REX releases door and operates alarm logic correctly"
+    },
+    {
+     "row": 38,
+     "check": "Mechanical door operation",
+     "expected": "Faults in door square, plumb, alignment, floor drag, frame clearance or other mechanical issues reported to PM via email (inspector to check email record)"
+    }
+   ]
+  },
+  {
+   "name": "Access Control, Software",
+   "items": [
+    {
+     "row": 40,
+     "check": "Door names verified",
+     "expected": "Door names match drawings and documentation"
+    },
+    {
+     "row": 41,
+     "check": "Controller names verified",
+     "expected": "Controller names match documentation"
+    },
+    {
+     "row": 42,
+     "check": "User permissions verified",
+     "expected": "User roles and permissions are correct"
+    },
+    {
+     "row": 43,
+     "check": "Alarm notifications tested",
+     "expected": "Required notifications operate correctly"
+    }
+   ]
+  },
+  {
+   "name": "VMS, Physical Installation",
+   "items": [
+    {
+     "row": 45,
+     "check": "Camera location verified",
+     "expected": "Camera location matches approved drawings"
+    },
+    {
+     "row": 46,
+     "check": "Camera securely mounted",
+     "expected": "Proper mounting hardware used straps/bolts"
+    },
+    {
+     "row": 47,
+     "check": "Pole mount",
+     "expected": "Proper straps in use for Pole mounted Cameras"
+    },
+    {
+     "row": 48,
+     "check": "Camera orientation verified",
+     "expected": "Camera is aimed at required coverage area"
+    },
+    {
+     "row": 49,
+     "check": "Penetrations sealed",
+     "expected": "Outdoor penetrations are properly sealed"
+    },
+    {
+     "row": 50,
+     "check": "Camera cable labeled correctly",
+     "expected": "Cable identification matches documentation"
+    },
+    {
+     "row": 51,
+     "check": "Roof Mounts",
+     "expected": "Protect waterproof membrane, sufficiently weighted, camera secure and properly aimed"
+    },
+    {
+     "row": 52,
+     "check": "Surface mount cameras",
+     "expected": "Back box or silicone seal"
+    }
+   ]
+  },
+  {
+   "name": "VMS, Software (Inspector judgement call on site lead vs PSG vs customer accountability)",
+   "items": [
+    {
+     "row": 54,
+     "check": "Live video tested",
+     "expected": "Live video displays correctly"
+    },
+    {
+     "row": 55,
+     "check": "Camera recording tested",
+     "expected": "Camera records successfully"
+    },
+    {
+     "row": 56,
+     "check": "Motion/event recording tested",
+     "expected": "Motion/event recording operates correctly where specified"
+    },
+    {
+     "row": 57,
+     "check": "Playback tested",
+     "expected": "Recorded video can be searched and played back"
+    },
+    {
+     "row": 58,
+     "check": "Timestamp verified",
+     "expected": "Video date/time is correct"
+    },
+    {
+     "row": 59,
+     "check": "Camera names verified",
+     "expected": "Camera names/locations are correct in VMS"
+    }
+   ]
+  },
+  {
+   "name": "Intercom",
+   "items": [
+    {
+     "row": 61,
+     "check": "Intercom securely mounted",
+     "expected": "Proper mounting hardware used and secure"
+    },
+    {
+     "row": 62,
+     "check": "Intercom can send/receive call",
+     "expected": "Sip setting/master station functions correctly"
+    },
+    {
+     "row": 63,
+     "check": "Intercom audio",
+     "expected": "Audio is clear on both ends"
+    }
+   ]
+  },
+  {
+   "name": "Radio",
+   "items": [
+    {
+     "row": 65,
+     "check": "Radio is securely mounted",
+     "expected": "Proper mounting hardware used straps/bolts"
+    },
+    {
+     "row": 66,
+     "check": "Radio is aimed",
+     "expected": "Aimed at receiver"
+    },
+    {
+     "row": 67,
+     "check": "Radio installed a proper height",
+     "expected": "Installed above potential obstructions Trees\\Trucks"
+    },
+    {
+     "row": 68,
+     "check": "Radio has no obstructions in path",
+     "expected": "No power lines or other environmental things that could obstruct the signal"
+    },
+    {
+     "row": 69,
+     "check": "Cabling",
+     "expected": "Outdoor rated, protected below 8', supported, no plastic zip ties"
+    }
+   ]
+  },
+  {
+   "name": "LPR",
+   "items": [
+    {
+     "row": 71,
+     "check": "LPR securely mounted",
+     "expected": "Proper mounting hardware used straps/bolts"
+    },
+    {
+     "row": 72,
+     "check": "LPR is aimed",
+     "expected": ""
+    },
+    {
+     "row": 73,
+     "check": "Tamper resistance",
+     "expected": "Mounted high, in a restricted access area, or physically protected"
+    }
+   ]
+  },
+  {
+   "name": "Servers and Clients",
+   "items": [
+    {
+     "row": 75,
+     "check": "Environment",
+     "expected": "Secure room, Environmental controls, no dust, debris"
+    },
+    {
+     "row": 76,
+     "check": "Wire management",
+     "expected": "Proper cable management, Labeling"
+    },
+    {
+     "row": 77,
+     "check": "Mounting hardware",
+     "expected": "Use of proper server rack mount\\rales in use for its location"
+    },
+    {
+     "row": 78,
+     "check": "Servers and Switches",
+     "expected": "Labeled correctly"
+    }
+   ]
+  },
+  {
+   "name": "Network",
+   "items": [
+    {
+     "row": 80,
+     "check": "Environment",
+     "expected": "Secure room, Environmental controls, no dust, debris"
+    },
+    {
+     "row": 81,
+     "check": "Wire management",
+     "expected": "Proper cable management, Labeling"
+    },
+    {
+     "row": 82,
+     "check": "Patch panel",
+     "expected": "Patch panel in use for head ends."
+    }
+   ]
+  },
+  {
+   "name": "Software Programing",
+   "items": [
+    {
+     "row": 84,
+     "check": "Core software installed",
+     "expected": "Genetec, Lenel, etc. Installed and updated"
+    },
+    {
+     "row": 85,
+     "check": "Software configured",
+     "expected": "Software is configured properly per scope."
+    }
+   ]
+  },
+  {
+   "name": "Specialty Equipment, Radar, Lidar, Key Cabinet, etc.",
+   "items": [
+    {
+     "row": 87,
+     "check": "Securely mounted",
+     "expected": "Proper mounting hardware used straps/bolts"
+    },
+    {
+     "row": 88,
+     "check": "Programed",
+     "expected": "Properly added to software and programed, i.e. integration programing."
+    },
+    {
+     "row": 89,
+     "check": "Wire management",
+     "expected": "Proper cable management, Labeling"
+    }
+   ]
+  },
+  {
+   "name": "Intrusion system, use enclosure checklist for panel",
+   "items": [
+    {
+     "row": 91,
+     "check": "Inputs, outputs, panics, sirens",
+     "expected": "Programed and functioning properly"
+    },
+    {
+     "row": 92,
+     "check": "All devices securely mounted, aligned",
+     "expected": "Match room esthetics or better"
+    },
+    {
+     "row": 93,
+     "check": "End of line resistors installed",
+     "expected": "Required for all hardwired end of line devices"
+    },
+    {
+     "row": 94,
+     "check": "Account, network, cell",
+     "expected": "Panel is tested to alert SOC or Monitoring Service"
+    },
+    {
+     "row": 95,
+     "check": "Integration",
+     "expected": "If in scope integration in to Genetec or other software"
+    }
+   ]
+  },
+  {
+   "name": "Cables and Pathways",
+   "items": [
+    {
+     "row": 97,
+     "check": "Interior pathways",
+     "expected": "Logical efficient runs; conduit, cable tray, and/or J hooks properly sized and supported with correct mounting hardware (J hooks spaced 4-5 feet)"
+    },
+    {
+     "row": 98,
+     "check": "Interior wall penetrations",
+     "expected": "Sleeves and bushings installed, clean looking"
+    },
+    {
+     "row": 99,
+     "check": "Fire stop",
+     "expected": "All penetrations in fire rated wall systems are correctly fire stopped"
+    },
+    {
+     "row": 100,
+     "check": "Interior cable runs",
+     "expected": "In pathways, clean bundles, clean 90 degree turns, use of Velcro; no plastic zip ties, no inappropriate supports"
+    },
+    {
+     "row": 101,
+     "check": "Plenum spaces",
+     "expected": "Plenum rated cable used"
+    },
+    {
+     "row": 102,
+     "check": "Service loops",
+     "expected": "10 feet in telcom rooms, 3 feet at device"
+    },
+    {
+     "row": 103,
+     "check": "Exterior wall penetrations",
+     "expected": "Drain to outside, silicone sealed or otherwise weatherproofed"
+    },
+    {
+     "row": 104,
+     "check": "Exterior cable runs",
+     "expected": "Appropriate physical protection, esthetics, weatherproofing, rated cable"
+    },
+    {
+     "row": 105,
+     "check": "Drip loops",
+     "expected": "Installed where required"
+    },
+    {
+     "row": 106,
+     "check": "Underground runs",
+     "expected": "Wet rated cable used"
+    }
+   ]
+  }
+ ],
+ "footnotes": [
+  "Sources: NEC, standard installation guide, project design, BICSI, Customer Standards, NFPA, Situationally appropriate esthetics, industry best practices",
+  "With respect to testing, while the inspector may perform a test, the expectation is that the site lead shows documentation proving the test has already been done and passed. Passing the test is not the requirement. Proving that you already conducted the test and documented passing the test before the inspector arrived is the requirement."
+ ]
+}
