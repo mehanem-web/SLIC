@@ -1045,7 +1045,8 @@ a { color: var(--accent); }
         });
       }
     } catch (e) {}
-    var url = URL.createObjectURL(blob);
+    // A generic file type makes browsers that open PDFs in a viewer (the Fire tablet's Silk) save the file instead.
+    var url = URL.createObjectURL(new Blob([blob], { type: "application/octet-stream" }));
     var a = document.createElement("a");
     a.href = url; a.download = name;
     document.body.appendChild(a); a.click(); a.remove();
