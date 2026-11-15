@@ -1,5 +1,5 @@
 // Keeps the form working with no signal. The version changes whenever the page does.
-const CACHE = "slic-eae15db017";
+const CACHE = "slic-686a4fde3a";
 const SHELL = ["./", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
