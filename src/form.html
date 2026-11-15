@@ -234,6 +234,8 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; le
 .dl-row[hidden] { display: none; }
 .dl { flex: 1 1 180px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
 .dl.done { background: var(--pass-bg); border-color: var(--pass); color: var(--pass); }
+.dl-hint { margin: 10px 0 0; padding: 10px 12px; border-radius: 8px; background: var(--warn-bg); color: var(--warn); font-size: 15px; }
+.dl-hint[hidden] { display: none; }
 .note label { font-size: 14px; font-weight: 600; color: var(--muted); }
 .note textarea {
   width: 100%; min-height: 76px; padding: 10px 12px; resize: vertical;
@@ -424,6 +426,7 @@ a { color: var(--accent); }
       <a class="btn btn-primary dl" id="fin-dl-pdf" href="#">Save report</a>
       <a class="btn btn-primary dl" id="fin-dl-xlsx" href="#">Save Excel sheet</a>
     </div>
+    <p class="dl-hint" id="fin-hint" hidden>Firefox opens the report instead of saving it. In the report, tap the download arrow at the top (or the menu with three dots, then Download), then come back here.</p>
     <div class="callout" id="fin-status" hidden></div>
     <div class="acts">
       <button class="btn" id="fin-back" type="button">Back to checklist</button>
@@ -1413,6 +1416,7 @@ a { color: var(--accent); }
     Object.keys(links).forEach(function (k) { URL.revokeObjectURL(links[k]); });
     links = {};
     $("fin-dl").hidden = true;
+    $("fin-hint").hidden = true;
     ["pdf", "xlsx"].forEach(function (k) {
       var a = $("fin-dl-" + k);
       a.className = "btn btn-primary dl";
@@ -1459,6 +1463,7 @@ a { color: var(--accent); }
         }
         btn.hidden = true;
         $("fin-dl").hidden = false;
+        $("fin-hint").hidden = !/firefox|fxios/i.test(navigator.userAgent);
         status("", "Tap each button to save the file to this tablet's Downloads.");
         $("fin-dl-pdf").focus();
       }, 30);
