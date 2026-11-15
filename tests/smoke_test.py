@@ -77,7 +77,10 @@ async def main():
                 await page.click("#allna-%d" % i)
         downloads.clear()
         await page.click("#finish-top"); await page.click("#fin-save")
-        await page.wait_for_function("document.getElementById('fin-save').textContent === 'Saved'", timeout=20000)
+        await page.wait_for_selector("#fin-dl-pdf", state="visible", timeout=20000)
+        await page.click("#fin-dl-pdf")
+        await page.click("#fin-dl-xlsx")
+        await page.wait_for_function("document.getElementById('fin-status').textContent.indexOf('Both files') === 0", timeout=5000)
         for _ in range(50):
             if len(downloads) >= 2:
                 break

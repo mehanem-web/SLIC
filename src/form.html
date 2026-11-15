@@ -230,6 +230,10 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; le
 .files li span { color: var(--muted); font-size: 15px; min-width: 0; }
 .files li.done { border-color: var(--pass); background: var(--pass-bg); }
 .files li.done span { color: var(--pass); }
+.dl-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.dl-row[hidden] { display: none; }
+.dl { flex: 1 1 180px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
+.dl.done { background: var(--pass-bg); border-color: var(--pass); color: var(--pass); }
 .note label { font-size: 14px; font-weight: 600; color: var(--muted); }
 .note textarea {
   width: 100%; min-height: 76px; padding: 10px 12px; resize: vertical;
@@ -416,6 +420,10 @@ a { color: var(--accent); }
       <li id="fin-f-pdf"><b>Report</b><span id="fin-n-pdf"></span></li>
       <li id="fin-f-xlsx"><b>Excel sheet</b><span id="fin-n-xlsx"></span></li>
     </ul>
+    <div class="dl-row" id="fin-dl" hidden>
+      <a class="btn btn-primary dl" id="fin-dl-pdf" href="#">Save report</a>
+      <a class="btn btn-primary dl" id="fin-dl-xlsx" href="#">Save Excel sheet</a>
+    </div>
     <div class="callout" id="fin-status" hidden></div>
     <div class="acts">
       <button class="btn" id="fin-back" type="button">Back to checklist</button>
@@ -1343,6 +1351,7 @@ a { color: var(--accent); }
     $("fin-files").hidden = blocked;
     finDone = { pdf: false, xlsx: false };
     $("fin-send").hidden = true;
+    resetLinks();
     paintFinFiles();
     status("", "");
     $("fin-save").disabled = false;
@@ -1355,8 +1364,9 @@ a { color: var(--accent); }
   var finDone = { pdf: false, xlsx: false };
   function reportName() { return fileName().replace(/\.xlsx$/, "") + "_Report.pdf"; }
   function paintFinFiles() {
-    $("fin-n-pdf").textContent = (finDone.pdf ? "Saved: " : "") + reportName();
-    $("fin-n-xlsx").textContent = (finDone.xlsx ? "Saved: " : "") + fileName();
+    var mark = HOSTED ? "Sent to Downloads: " : "Saved: ";
+    $("fin-n-pdf").textContent = (finDone.pdf ? mark : "") + reportName();
+    $("fin-n-xlsx").textContent = (finDone.xlsx ? mark : "") + fileName();
     $("fin-f-pdf").className = finDone.pdf ? "done" : "";
     $("fin-f-xlsx").className = finDone.xlsx ? "done" : "";
     $("fin-save").textContent = finDone.pdf && finDone.xlsx ? "Saved" : finDone.pdf ? "Save the Excel sheet" : finDone.xlsx ? "Save the report" : "Save report and Excel sheet";
@@ -1396,10 +1406,64 @@ a { color: var(--accent); }
       status("ok", "Nothing was sent. The files are still in this tablet's Downloads.");
     });
   });
+  // On a self-hosted copy the files are saved by the inspector tapping each one. A download the
+  // person taps is never blocked, while two started by the page back to back can be (Firefox on tablets).
+  var links = {};
+  function resetLinks() {
+    Object.keys(links).forEach(function (k) { URL.revokeObjectURL(links[k]); });
+    links = {};
+    $("fin-dl").hidden = true;
+    ["pdf", "xlsx"].forEach(function (k) {
+      var a = $("fin-dl-" + k);
+      a.className = "btn btn-primary dl";
+      a.textContent = k === "pdf" ? "Save report" : "Save Excel sheet";
+      a.setAttribute("href", "#");
+    });
+  }
+  function setLink(kind, bytes, name) {
+    var url = URL.createObjectURL(new Blob([bytes], { type: "application/octet-stream" }));
+    links[kind] = url;
+    var a = $("fin-dl-" + kind);
+    a.href = url;
+    a.download = name;
+  }
+  ["pdf", "xlsx"].forEach(function (kind) {
+    $("fin-dl-" + kind).addEventListener("click", function (ev) {
+      if (!links[kind]) { ev.preventDefault(); return; }
+      finDone[kind] = true;
+      this.className = "btn dl done";
+      this.textContent = kind === "pdf" ? "Report: save again" : "Excel sheet: save again";
+      paintFinFiles();
+      if (finDone.pdf && finDone.xlsx) {
+        status("ok", "Both files were sent to this tablet's Downloads. If one is missing there, tap its button again. Your answers stay on this tablet until you start a new inspection.");
+        offerSend();
+      } else {
+        status("", kind === "pdf" ? "Now tap Save Excel sheet." : "Now tap Save report.");
+      }
+    });
+  });
   $("fin-save").addEventListener("click", function () {
     var btn = $("fin-save");
     btn.disabled = true;
     status("", "Building the files\u2026");
+    if (HOSTED) {
+      setTimeout(function () {
+        try {
+          resetLinks();
+          setLink("pdf", buildReport(), reportName());
+          setLink("xlsx", buildWorkbook(0), fileName());
+        } catch (e) {
+          btn.disabled = false;
+          status("err", e.message || "The files could not be built.");
+          return;
+        }
+        btn.hidden = true;
+        $("fin-dl").hidden = false;
+        status("", "Tap each button to save the file to this tablet's Downloads.");
+        $("fin-dl-pdf").focus();
+      }, 30);
+      return;
+    }
     setTimeout(function () {
       saveOne("pdf").then(function (res) {
         return res === "saved" ? saveOne("xlsx") : res;
