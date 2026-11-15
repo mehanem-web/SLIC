@@ -78,6 +78,10 @@ async def main():
         downloads.clear()
         await page.click("#finish-top"); await page.click("#fin-save")
         await page.wait_for_function("document.getElementById('fin-save').textContent === 'Saved'", timeout=20000)
+        for _ in range(50):
+            if len(downloads) >= 2:
+                break
+            await page.wait_for_timeout(100)
         names = sorted(d.suggested_filename for d in downloads)
         assert names == ["SLIC_Test-Lead_2026-11-14.xlsx", "SLIC_Test-Lead_2026-11-14_Report.pdf"], names
         for d in downloads:
