@@ -428,6 +428,7 @@ a { color: var(--accent); }
       <button class="btn" id="fin-back" type="button">Back to checklist</button>
       <button class="btn" id="fin-first" type="button" hidden>Go to first unanswered</button>
       <button class="btn btn-primary" id="fin-save" type="button">Save report and Excel sheet</button>
+      <button class="btn" id="fin-send" type="button" hidden>Send to Box or email</button>
     </div>
   </div>
 </div>
@@ -1750,6 +1751,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     $("fin-save").hidden = blocked;
     $("fin-files").hidden = blocked;
     finDone = { pdf: false, xlsx: false };
+    $("fin-send").hidden = true;
     paintFinFiles();
     status("", "");
     $("fin-save").disabled = false;
@@ -1774,42 +1776,48 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     var bytes, name = kind === "pdf" ? reportName() : fileName();
     try { bytes = kind === "pdf" ? buildReport() : buildWorkbook(0); }
     catch (e) { return Promise.reject(new Error(e.message || "The file could not be built.")); }
-    return saveFile(bytes, name, kind === "pdf" ? "application/pdf" : XLSX_MIME).then(function (res) {
+    return saveFile(bytes, name, kind === "pdf" ? "application/pdf" : XLSX_MIME, true).then(function (res) {
       if (res === "saved") { finDone[kind] = true; paintFinFiles(); }
       return res;
     });
   }
+  // Optional extra after saving: hand copies of the files to another app (Box, email) where the tablet supports it.
+  function sendBundle() {
+    var files = [new File([buildReport()], reportName(), { type: "application/pdf" }), new File([buildWorkbook(0)], fileName(), { type: XLSX_MIME })];
+    var withPhotos = files.slice();
+    Object.keys(photos).forEach(function (row) {
+      photos[row].forEach(function (rec) { withPhotos.push(new File([rec.buf], rec.name, { type: "image/jpeg" })); });
+    });
+    return canShareFiles(withPhotos) ? withPhotos : canShareFiles(files) ? files : null;
+  }
+  function offerSend() {
+    var ok = false;
+    try { ok = !!sendBundle(); } catch (e) { ok = false; }
+    $("fin-send").hidden = !ok;
+  }
+  $("fin-send").addEventListener("click", function () {
+    var files;
+    try { files = sendBundle(); } catch (e) { files = null; }
+    if (!files) { $("fin-send").hidden = true; return; }
+    navigator.share({ files: files, title: fileName().replace(/\.xlsx$/, "") }).then(function () {
+      status("ok", "Copies were sent to the app you chose. The files are also in this tablet's Downloads.");
+    }, function () {
+      status("ok", "Nothing was sent. The files are still in this tablet's Downloads.");
+    });
+  });
   $("fin-save").addEventListener("click", function () {
     var btn = $("fin-save");
     btn.disabled = true;
     status("", "Building the files\u2026");
     setTimeout(function () {
-      var bundle = null;
-      try {
-        if (HOSTED && !finDone.pdf && !finDone.xlsx && navigator.canShare) {
-          var all = [new File([buildReport()], reportName(), { type: "application/pdf" }), new File([buildWorkbook(0)], fileName(), { type: XLSX_MIME })];
-          var withPhotos = all.slice();
-          Object.keys(photos).forEach(function (row) {
-            photos[row].forEach(function (rec) { withPhotos.push(new File([rec.buf], rec.name, { type: "image/jpeg" })); });
-          });
-          bundle = canShareFiles(withPhotos) ? withPhotos : canShareFiles(all) ? all : null;
-        }
-      } catch (e) { bundle = null; }
-      if (bundle) {
-        navigator.share({ files: bundle, title: fileName().replace(/\.xlsx$/, "") }).then(function () {
-          finDone.pdf = true; finDone.xlsx = true; paintFinFiles();
-          status("ok", bundle.length > 2 ? "The report, the Excel sheet and " + (bundle.length - 2) + (bundle.length === 3 ? " photo" : " photos") + " were handed to the app you chose." : "The report and the Excel sheet were handed to the app you chose.");
-        }, function () {
-          paintFinFiles();
-          status("", "Nothing was sent. Tap the button to try again.");
-        });
-        return;
-      }
       saveOne("pdf").then(function (res) {
         return res === "saved" ? saveOne("xlsx") : res;
       }).then(function (res) {
         paintFinFiles();
-        if (finDone.pdf && finDone.xlsx) { status("ok", "Both files are saved. Your answers stay on this tablet until you start a new inspection."); }
+        if (finDone.pdf && finDone.xlsx) {
+          status("ok", "Both files are saved to this tablet's Downloads. Your answers stay on this tablet until you start a new inspection.");
+          offerSend();
+        }
         else { status("", "Not everything was saved. Tap the button to save what is left."); }
       }, function (e) {
         paintFinFiles();
